@@ -1,5 +1,5 @@
 /** Automatically generated file. DO NOT MODIFY */
-package com.example.bobblehead;
+package com.bn.bobblehead;
 
 public final class BuildConfig {
     public final static boolean DEBUG = true;

@@ -2,7 +2,7 @@ package com.bn.bobblehead;
 
 import java.io.ByteArrayOutputStream;
 
-import com.example.bobblehead.R;
+import com.bn.bobblehead.R;
 
 import android.os.Bundle;
 import android.app.Activity;

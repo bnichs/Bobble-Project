@@ -16,7 +16,7 @@
 
 package com.bn.bobblehead;
 
-import com.example.bobblehead.R;
+import com.bn.bobblehead.R;
 
 import android.app.Activity;
 import android.content.Context;
