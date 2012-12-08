@@ -1,6 +1,8 @@
 package com.bn.bobblehead;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 
 import com.bn.bobblehead.FaceSelectActivity;
 
@@ -9,13 +11,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 
 public class HomeScreen extends Activity {
 
-	private static final int CAMERA_REQUEST = 1888; 
+	public static final File fil=new File(Environment.getExternalStorageDirectory(), "bobblebackg.png");
+    private static final int CAMERA_REQUEST = 1888; 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,9 +36,23 @@ public class HomeScreen extends Activity {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 photo.compress(Bitmap.CompressFormat.PNG, 100, baos); 
                 byte[] b = baos.toByteArray();
-
+                
+                try {
+                    if(!fil.exists()){fil.createNewFile();}
+                	FileOutputStream out = new FileOutputStream(fil);
+                    
+                    photo.compress(Bitmap.CompressFormat.PNG, 90, out);
+                    
+                    out.flush();
+                    out.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+      
+                
                 Intent intent = new Intent(HomeScreen.this, FaceSelectActivity.class);
-                intent.putExtra("img", b);
+                //intent.putExtra("img", b);
                 startActivity(intent);
             }
         });
@@ -43,11 +61,11 @@ public class HomeScreen extends Activity {
     //this receives the camera's photo
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {  
         if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK) {  
-            Bitmap photo = (Bitmap) data.getExtras().get("data"); 
+           Bitmap backg = (Bitmap) data.getExtras().get("data"); 
             //imageView.setImageBitmap(photo);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            photo.compress(Bitmap.CompressFormat.PNG, 100, baos); 
-            byte[] b = baos.toByteArray();
+            //ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            //photo.compress(Bitmap.CompressFormat.PNG, 100, baos); 
+           // byte[] b = baos.toByteArray();
 
             Intent intent = new Intent(this, BobActivity.class);
             //intent.putExtra("img", b);

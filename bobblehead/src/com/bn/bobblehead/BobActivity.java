@@ -16,6 +16,8 @@
 
 package com.bn.bobblehead;
 
+import java.io.File;
+
 import com.bn.bobblehead.R;
 
 import android.app.Activity;
@@ -31,6 +33,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.DisplayMetrics;
@@ -79,10 +82,17 @@ public class BobActivity extends Activity {
         mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, getClass()
                 .getName());
 
-        byte[] b = getIntent().getExtras().getByteArray("img");
-        Bitmap imgS = BitmapFactory.decodeByteArray(b, 0, b.length);
-        // instantiate our simulation view and set it as the activity's content
-        mSimulationView = new SimulationView(this,imgS);
+        byte[] b = getIntent().getExtras().getByteArray("face");
+        Bitmap face = BitmapFactory.decodeByteArray(b, 0, b.length);
+       // instantiate our simulation view and set it as the activity's content
+        //b = getIntent().getExtras().getByteArray("backg");
+        
+        
+        Bitmap bg = BitmapFactory.decodeFile(HomeScreen.fil.toString());
+        
+        
+        
+        mSimulationView = new SimulationView(this,bg,face);
         setContentView(mSimulationView);
     }
 
@@ -355,7 +365,7 @@ public class BobActivity extends Activity {
             mSensorManager.unregisterListener(this);
         }
 
-        public SimulationView(Context context,Bitmap bm) {
+        public SimulationView(Context context,Bitmap bg,Bitmap bm) {
             super(context);
             mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
@@ -366,18 +376,15 @@ public class BobActivity extends Activity {
             mMetersToPixelsX = mXDpi / 0.0254f;
             mMetersToPixelsY = mYDpi / 0.0254f;
 
-            // rescale the ball so it's about 0.5 cm on screen
-            //Bitmap ball = BitmapFactory.decodeResource(getResources(), R.drawable.solo);
-            final int dstWidth = (int) (sBallDiameter * mMetersToPixelsX + 0.5f);
-            final int dstHeight = (int) (sBallDiameter * mMetersToPixelsY + 0.5f);
-            mBitmap = Bitmap.createScaledBitmap(bm, dstWidth, dstHeight, true);
+           
+            mBitmap = bm;
             
             Options opts = new Options();
             opts.inDither = true;
             opts.inPreferredConfig = Bitmap.Config.RGB_565;
             
-            
-            backg=BitmapFactory.decodeResource(getResources(), R.drawable.starwars);
+            backg=Bitmap.createScaledBitmap(bg, metrics.widthPixels, metrics.heightPixels, false);
+			
             
         }
 

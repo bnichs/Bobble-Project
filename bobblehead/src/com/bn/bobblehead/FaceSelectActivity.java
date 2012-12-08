@@ -1,20 +1,26 @@
 package com.bn.bobblehead;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.DisplayMetrics;
@@ -24,6 +30,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
 
+@SuppressLint("NewApi")
 public class FaceSelectActivity extends Activity {
 
 		private SelectView mSelectView;
@@ -38,8 +45,8 @@ public class FaceSelectActivity extends Activity {
 	    public void onCreate(Bundle savedInstanceState) {
 	        super.onCreate(savedInstanceState);
 
-	        byte[] b = getIntent().getExtras().getByteArray("img");
-	        Bitmap imgS = BitmapFactory.decodeByteArray(b, 0, b.length);
+	        //byte[] b = getIntent().getExtras().getByteArray("img");
+	       // Bitmap imgS = BitmapFactory.decodeByteArray(b, 0, b.length);
 	        
 	        
 	        
@@ -59,7 +66,7 @@ public class FaceSelectActivity extends Activity {
 	                .getName());
 
 	        // instantiate our simulation view and set it as the activity's content
-	        mSelectView = new SelectView(this,imgS);
+	        mSelectView = new SelectView(this);
 	        setContentView(mSelectView);
 	    }
 	    
@@ -100,7 +107,9 @@ public class FaceSelectActivity extends Activity {
     	 private Sensor mAccelerometer;
     	 private Bitmap backg;
     	 
-    	 public SelectView(Context context,Bitmap bm) {
+    	 
+    	 
+    	 public SelectView(Context context) {
              super(context);
              mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
@@ -117,7 +126,15 @@ public class FaceSelectActivity extends Activity {
 			 	
 			button=Bitmap.createScaledBitmap(but, 100, 100, false);
             
-			backg=Bitmap.createScaledBitmap(bm, metrics.widthPixels, metrics.heightPixels, false);
+			
+			Bitmap tmp=BitmapFactory.decodeFile(HomeScreen.fil.toString());
+			
+			//System.out.println(backg.getRowBytes());
+			
+			
+			backg=Bitmap.createScaledBitmap(tmp, metrics.widthPixels, metrics.heightPixels, false);
+			
+			
 			
 			buttonR=new Rect(metrics.widthPixels-150,metrics.heightPixels-200,metrics.widthPixels,metrics.heightPixels);
 			
@@ -152,12 +169,28 @@ public class FaceSelectActivity extends Activity {
 			
 		}
 		
+		public Bitmap getCroppedBitmap(Bitmap bitmap,RectF r) {
+		    Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
+		            bitmap.getHeight(), Config.ARGB_8888);
+		    Canvas canvas = new Canvas(output);
+
+		    final int color = 0xff424242;
+		    final Paint paint = new Paint();
+		    final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+
+		    paint.setAntiAlias(true);
+		    canvas.drawARGB(0, 0, 0, 0);
+		    paint.setColor(color);
+
+		    canvas.drawOval(r,new Paint());
+		    paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
+		    canvas.drawBitmap(bitmap, rect, rect, paint);
+
+		    return output;
+		}
+		
 		 protected void onDraw(Canvas canvas) {
 			 	
-			 	
-			 	 
-			 	System.out.println(canvas.getWidth());
-	            
 			 	canvas.drawBitmap(backg, 0, 0, null);
 			 	if (selection != null){
 	            	canvas.drawOval(selection, new Paint());
@@ -187,15 +220,24 @@ public class FaceSelectActivity extends Activity {
 		    int y = (int) e.getY();
 		   
 		    
-		    //System.out.println(x+ ":" + y);
+		    //crop out the face, send to bobble activity
 		    if (buttonR.contains(x, y)){
 					Intent i = new Intent(FaceSelectActivity.this,BobActivity.class);
-					Bitmap bm=Bitmap.createBitmap(backg,(int)selection.left, (int)selection.top,(int)selection.width(),(int)selection.height());
+					Bitmap face=Bitmap.createBitmap(backg,(int)selection.left, (int)selection.top,(int)selection.width(),(int)selection.height());
+					face=getCroppedBitmap(backg,selection);
+					
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	                bm.compress(Bitmap.CompressFormat.PNG, 100, baos); 
+	                face.compress(Bitmap.CompressFormat.PNG, 100, baos); 
 	                byte[] b = baos.toByteArray();
 					
-					i.putExtra("img", b);
+					i.putExtra("face", b);
+					
+					//baos = new ByteArrayOutputStream();
+					//backg.compress(Bitmap.CompressFormat.PNG, 100, baos);
+					//b = baos.toByteArray();
+					
+					//i.putExtra("backg", b);
+					
 					startActivity(i);
 					return true;
 					
@@ -203,19 +245,18 @@ public class FaceSelectActivity extends Activity {
 		    
 			switch (e.getAction()) {
 			case MotionEvent.ACTION_DOWN:
-				
-				 if (!rectDrawn){
+				if (!rectDrawn){
 					top=(int) y;
 					left=(int) x;
 				}
 			case MotionEvent.ACTION_UP :
 				right=x;
 				bottom=y;
-				rectDrawn=true;
+				rectDrawn=false;
 			case MotionEvent.ACTION_MOVE:
 				right=x;
 				bottom=y;
-				//rectDrawn=true;
+				
 			}
 			
 			if (top==0 && left==0 && right==0 && bottom==0){
@@ -225,7 +266,7 @@ public class FaceSelectActivity extends Activity {
 			
 			int tmp;
 			
-			//selection=new Rect(100,0,100,0);
+		
 			if (left>right){
 				tmp=right;
 				right=left;
@@ -251,6 +292,9 @@ public class FaceSelectActivity extends Activity {
 			// TODO Auto-generated method stub
 			
 		}
+
+
+	
 		
 
     	
