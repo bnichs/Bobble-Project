@@ -79,8 +79,10 @@ public class BobActivity extends Activity {
         mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, getClass()
                 .getName());
 
+        byte[] b = getIntent().getExtras().getByteArray("img");
+        Bitmap imgS = BitmapFactory.decodeByteArray(b, 0, b.length);
         // instantiate our simulation view and set it as the activity's content
-        mSimulationView = new SimulationView(this);
+        mSimulationView = new SimulationView(this,imgS);
         setContentView(mSimulationView);
     }
 
@@ -132,7 +134,7 @@ public class BobActivity extends Activity {
         private float mMetersToPixelsX;
         private float mMetersToPixelsY;
         private Bitmap mBitmap;
-        private Bitmap mWood;
+        private Bitmap backg;
         private float mXOrigin;
         private float mYOrigin;
         private float mSensorX;
@@ -353,7 +355,7 @@ public class BobActivity extends Activity {
             mSensorManager.unregisterListener(this);
         }
 
-        public SimulationView(Context context) {
+        public SimulationView(Context context,Bitmap bm) {
             super(context);
             mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
@@ -365,20 +367,18 @@ public class BobActivity extends Activity {
             mMetersToPixelsY = mYDpi / 0.0254f;
 
             // rescale the ball so it's about 0.5 cm on screen
-            Bitmap ball = BitmapFactory.decodeResource(getResources(), R.drawable.solo);
+            //Bitmap ball = BitmapFactory.decodeResource(getResources(), R.drawable.solo);
             final int dstWidth = (int) (sBallDiameter * mMetersToPixelsX + 0.5f);
             final int dstHeight = (int) (sBallDiameter * mMetersToPixelsY + 0.5f);
-            mBitmap = Bitmap.createScaledBitmap(ball, dstWidth, dstHeight, true);
+            mBitmap = Bitmap.createScaledBitmap(bm, dstWidth, dstHeight, true);
             
             Options opts = new Options();
             opts.inDither = true;
             opts.inPreferredConfig = Bitmap.Config.RGB_565;
             
             
-            mWood = BitmapFactory.decodeResource(getResources(), R.drawable.starwars, opts);
-            //Face f= new Face(mWood);
-            //f.rotate(30f);
-            //mWood=f.face;
+            backg=BitmapFactory.decodeResource(getResources(), R.drawable.starwars);
+            
         }
 
         @Override
@@ -441,7 +441,7 @@ public class BobActivity extends Activity {
              * draw the background
              */
 
-            canvas.drawBitmap(mWood, 0, 0, null);
+            canvas.drawBitmap(backg, 0, 0, null);
 
             /*
              * compute the new position of our object, based on accelerometer

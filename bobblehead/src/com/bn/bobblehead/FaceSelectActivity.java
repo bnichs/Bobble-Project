@@ -1,5 +1,7 @@
 package com.bn.bobblehead;
 
+import java.io.ByteArrayOutputStream;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -189,7 +191,11 @@ public class FaceSelectActivity extends Activity {
 		    if (buttonR.contains(x, y)){
 					Intent i = new Intent(FaceSelectActivity.this,BobActivity.class);
 					Bitmap bm=Bitmap.createBitmap(backg,(int)selection.left, (int)selection.top,(int)selection.width(),(int)selection.height());
-					i.putExtra("img", bm);
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	                bm.compress(Bitmap.CompressFormat.PNG, 100, baos); 
+	                byte[] b = baos.toByteArray();
+					
+					i.putExtra("img", b);
 					startActivity(i);
 					return true;
 					
@@ -217,8 +223,23 @@ public class FaceSelectActivity extends Activity {
 				
 			}
 			
+			int tmp;
 			
 			//selection=new Rect(100,0,100,0);
+			if (left>right){
+				tmp=right;
+				right=left;
+				left=tmp;
+				
+			}
+			if (top>bottom){
+				tmp=bottom;
+				bottom=top;
+				top=tmp;
+				
+			}
+			
+			
 			selection=new RectF(left,top,right,bottom);
 			return true;
 			
