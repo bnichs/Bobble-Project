@@ -2,13 +2,13 @@ package com.bn.bobblehead;
 
 import java.io.ByteArrayOutputStream;
 
-import com.bn.bobblehead.R;
+import com.bn.bobblehead.FaceSelectActivity;
 
-import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -28,12 +28,12 @@ public class HomeScreen extends Activity {
             public void onClick(View v) {
                // Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE); 
                 //startActivityForResult(cameraIntent, CAMERA_REQUEST); 
-            	Bitmap photo = BitmapFactory.decodeResource(getResources(), R.drawable.test);
+            	Bitmap photo = BitmapFactory.decodeResource(getResources(), R.drawable.starwars);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 photo.compress(Bitmap.CompressFormat.PNG, 100, baos); 
                 byte[] b = baos.toByteArray();
 
-                Intent intent = new Intent(HomeScreen.this, BobActivity.class);
+                Intent intent = new Intent(HomeScreen.this, FaceSelectActivity.class);
                 intent.putExtra("img", b);
                 startActivity(intent);
             }
