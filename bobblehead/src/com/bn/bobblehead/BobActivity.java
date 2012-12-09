@@ -178,6 +178,7 @@ public class BobActivity extends Activity {
         	private float rot;//rotation
         	private RectF rec;//current rectangle occupied
         	private RectF boxRec;
+        	private RectF moveBox;
         	
         	private float mPosX;
             private float mPosY;
@@ -189,7 +190,7 @@ public class BobActivity extends Activity {
             public float posX,posY;
             private double springK = 0.000003;
             private double dampingK = 0.000035;
-        	
+        	private double t;
             private float width, height;
             
         	public Face(RectF box){
@@ -202,7 +203,7 @@ public class BobActivity extends Activity {
                 float top=rec.top;
                 float right=rec.right;
                 float bottom=rec.bottom;
-                
+                 t= 0; 
                 
                 
                 width=right-left;
@@ -215,6 +216,13 @@ public class BobActivity extends Activity {
                 bottom=bottom+height/5f;
                 
                 boxRec=new RectF(left,top,right,bottom);
+                
+                int moveL = (int) (left - (left/6f));
+                int moveT = (int) (top - (top/6f));
+                int moveR = (int) (right + (right/6f));
+                int moveB = (int) (bottom + (bottom/6f));
+                
+                moveBox = new RectF(moveL, moveT, moveR, moveB);
 
                
                 face=BitmapFactory.decodeFile(HomeScreen.faceFil.toString());
@@ -225,23 +233,16 @@ public class BobActivity extends Activity {
         	
         	
         	public void update(float sx, float sy, long timestamp){
-        		
-        	
-                
-                
+        		computePhysics(sx, sy);
         	}
         	
         	
-        	 public void computePhysics(float sx, float sy, float dT, float dTC) {
-             	float vx = (float) (sx * (-springK - mAccelX * dampingK));
-             	float vy = (float) (sy * (-springK - mAccelY * dampingK));
-             	mAccelX += vx * dT;
-             	mAccelY += vy * dT;
-             	
-             	mLastPosX = mPosX;
-             	mLastPosY = mPosY;
-             	mPosX += .000001f ;//mAccelX * dT;
-             	//mPosY += //mAccelY * dT;
+        	 public void computePhysics(float sx, float sy) { // move around boxRec
+        		t= t + 0.5;
+             	boxRec.left += (float) Math.sin(t);
+             	boxRec.right+= (float) Math.sin(t);
+             	boxRec.top += (float) Math.sin(2*t);
+             	boxRec.bottom+= (float) Math.sin(2*t);
  	     }
         	
         	public void rotate(float theta){
@@ -373,7 +374,7 @@ public class BobActivity extends Activity {
 
             
            // particleSystem.update(sx, sy, now);
-//            /face.update(sx, sy, now);
+
        
             final float xc = mXOrigin;
             final float yc = mYOrigin;
@@ -383,13 +384,14 @@ public class BobActivity extends Activity {
             
             //face.face.setDensity(300);
             
-           
+            face.update(sx, sy, now); // update the position
             canvas.drawBitmap(face.face,null,face.boxRec, null);
             
             //System.out.println(face.face.getWidth()+":"+face.face.getHeight());
             
-            canvas.drawRect(face.boxRec, p);
-            canvas.drawRect(face.rec, p);
+//            canvas.drawRect(face.boxRec, p);
+//            canvas.drawRect(face.rec, p);
+//            canvas.drawRect(face.moveBox, p);
             
             // and make sure to redraw asap
             invalidate();
@@ -399,8 +401,6 @@ public class BobActivity extends Activity {
         	return new Rect((int)r.left,(int)r.top,(int)r.right,(int)r.bottom);
         }
        
-
-      
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
         }
     }
