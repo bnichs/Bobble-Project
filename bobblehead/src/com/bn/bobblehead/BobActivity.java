@@ -182,6 +182,7 @@ public class BobActivity extends Activity {
             private float mLastPosX;
             private float mLastPosY;
             private float mOneMinusFriction;
+            private float posX,posY;
         	
         	public Face(Bitmap f, RectF r){
         		
@@ -193,6 +194,8 @@ public class BobActivity extends Activity {
                 float top=rec.top;
                 float right=rec.right;
                 float bottom=rec.bottom;
+                
+                
                 
                 float width=right-left;
                 float height=bottom-top;
@@ -671,7 +674,7 @@ public class BobActivity extends Activity {
             
             
             
-            canvas.drawBitmap(bitmap, 0,50, null);
+            canvas.drawBitmap(face.face, face.x,face.y, null);
             
             //System.out.println(face.face.getWidth()+":"+face.face.getHeight());
             
