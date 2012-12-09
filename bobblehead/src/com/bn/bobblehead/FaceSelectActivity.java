@@ -211,6 +211,7 @@ public class FaceSelectActivity extends Activity {
 					i.putExtra("rec", rec);
 
 					startActivity(i);
+					finish();
 					return true;
 
 				}

@@ -24,11 +24,13 @@
         </activity>
         <activity
             android:name=".BobActivity"
+            android:noHistory="true"
             android:label="@string/title_activity_bob"
             android:screenOrientation="landscape" >
         </activity>
         <activity
             android:name=".BobbleActivity"
+            android:noHistory="true"
             android:label="@string/title_activity_bobble"
             android:screenOrientation="landscape" >
             <intent-filter>
@@ -40,6 +42,7 @@
         <activity
             android:name=".FaceSelectActivity"
             android:screenOrientation="landscape"
+            android:noHistory="true"
             android:label="@string/title_activity_face_select" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
