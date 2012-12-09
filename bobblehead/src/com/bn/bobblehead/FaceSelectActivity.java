@@ -189,12 +189,16 @@ public class FaceSelectActivity extends Activity {
 		    return output;
 		}
 		
+		private Paint p=new Paint();
+		
 		 protected void onDraw(Canvas canvas) {
-			 	
+			 	p.setStyle(Paint.Style.STROKE) ;
+			 	p.setStrokeWidth(4f);
+			 	p.setARGB(255, 0, 200, 0);
 			 	canvas.drawBitmap(backg, 0, 0, null);
 			 	if (selection != null){
-	            	canvas.drawOval(selection, new Paint());
-	            	System.out.println(selection.left+":"+selection.top+":"+selection.right+":"+selection.bottom);
+	            	canvas.drawOval(selection, p);
+	            	//System.out.println(selection.left+":"+selection.top+":"+selection.right+":"+selection.bottom);
 	            	
 	            }
 			 	//buttonR=new Rect((int)(canvas.getWidth()-100f),(int)(canvas.getHeight()-200f),canvas.getHeight(),canvas.getWidth());
@@ -232,11 +236,9 @@ public class FaceSelectActivity extends Activity {
 					
 					i.putExtra("face", b);
 					
-					//baos = new ByteArrayOutputStream();
-					//backg.compress(Bitmap.CompressFormat.PNG, 100, baos);
-					//b = baos.toByteArray();
+					RectF rec= new RectF(selection.left, selection.top,selection.left+selection.width(),selection.top+selection.height());
 					
-					//i.putExtra("backg", b);
+					i.putExtra("rec", rec);
 					
 					startActivity(i);
 					return true;

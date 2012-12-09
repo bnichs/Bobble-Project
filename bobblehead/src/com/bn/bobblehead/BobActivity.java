@@ -28,6 +28,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.BitmapFactory.Options;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -82,8 +84,12 @@ public class BobActivity extends Activity {
         mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, getClass()
                 .getName());
 
-        byte[] b = getIntent().getExtras().getByteArray("face");
+        
+        Intent i = getIntent();
+        byte[] b = i.getExtras().getByteArray("face");
         Bitmap face = BitmapFactory.decodeByteArray(b, 0, b.length);
+        
+        //System.out.println(face.getHeight());
        // instantiate our simulation view and set it as the activity's content
         //b = getIntent().getExtras().getByteArray("backg");
         
@@ -91,8 +97,10 @@ public class BobActivity extends Activity {
         Bitmap bg = BitmapFactory.decodeFile(HomeScreen.fil.toString());
         
         
+        RectF rec = (RectF) i.getParcelableExtra("rec");
         
-        mSimulationView = new SimulationView(this,bg,face);
+        
+        mSimulationView = new SimulationView(this,bg,face,rec);
         setContentView(mSimulationView);
     }
 
@@ -155,18 +163,138 @@ public class BobActivity extends Activity {
         private float mVerticalBound;
         private final ParticleSystem mParticleSystem = new ParticleSystem();
         private float angle=0;
+        
+        private Face face;
 
         
         class Face{
-        	private float mX;
-        	private float mY;
+        	
         	private Bitmap face;
         	private float rot;//rotation
+        	private RectF rec;//current rectangle occupied
+        	private RectF boxRec;
         	
-        	public Face(Bitmap f){
-        		face=f;
+        	private float mPosX;
+            private float mPosY;
+            private float mAccelX;
+            private float mAccelY;
+            private float mLastPosX;
+            private float mLastPosY;
+            private float mOneMinusFriction;
+        	
+        	public Face(Bitmap f, RectF r){
+        		
+        		rec=r;
+        		final float ran = ((float) Math.random() - 0.5f) * 0.2f;
+                mOneMinusFriction = 1.0f - sFriction + ran;
+        		        	
+                float left=rec.left;
+                float top=rec.top;
+                float right=rec.right;
+                float bottom=rec.bottom;
+                
+                float width=right-left;
+                float height=bottom-top;
+                
+                left=left-width/4f;
+                right=right+width/4f;
+                
+                top=top-height/5f;
+                bottom=bottom+height/5f;
+                
+                boxRec=new RectF(left,top,right,bottom);
+                face=Bitmap.createScaledBitmap(f, (int)width, (int)height, false);
+                
+                System.out.println(face.getHeight());
+        	}
+        	
+        	public void update(float sx, float sy, long timestamp){
+        		final long t = timestamp;
+                if (mLastT != 0) {
+                    final float dT = (float) (t - mLastT) * (1.0f / 1000000000.0f);
+                    if (mLastDeltaT != 0) {
+                        final float dTC = dT / mLastDeltaT;
+                        this.computePhysics(sx, sy, dT, dTC);
+                        
+                    }
+                    mLastDeltaT = dT;
+                }
+                mLastT = t;
+                
+                this.resolveCollisionsWithBounds();
+        	}
+        	
+        	public void resolveCollisionsWithBounds(){
+        		float bLeft=boxRec.left;
+        		float bRight=boxRec.right;
+        		float bTop=boxRec.top;
+        		float bBottom=boxRec.bottom;
+        		
+        		float left=rec.left;
+        		float right=rec.right;
+        		float top=rec.top;
+        		float bottom=rec.bottom;
+        		
+        		if (left<bLeft){left=bLeft;}
+        		else if (right>bRight){right=bRight;}
+        		else if (top<bTop){top=bTop;}
+        		else if (bottom>bBottom){bottom=bBottom;}
+        		
+        		rec=new RectF(left,top,right,bottom);
         		
         	}
+        	
+        	 public void computePhysics(float sx, float sy, float dT, float dTC) {
+                 // Force of gravity applied to our virtual object
+                 final float m = 1000.0f; // mass of our virtual object
+                 final float gx = -sx * m;
+                 final float gy = -sy * m;
+
+                 /*
+                  * �F = mA <=> A = �F / m We could simplify the code by
+                  * completely eliminating "m" (the mass) from all the equations,
+                  * but it would hide the concepts from this sample code.
+                  */
+                 final float invm = 1.0f / m;
+                 final float ax = gx * invm;
+                 final float ay = gy * invm;
+
+                 /*
+                  * Time-corrected Verlet integration The position Verlet
+                  * integrator is defined as x(t+�t) = x(t) + x(t) - x(t-�t) +
+                  * a(t)�t�2 However, the above equation doesn't handle variable
+                  * �t very well, a time-corrected version is needed: x(t+�t) =
+                  * x(t) + (x(t) - x(t-�t)) * (�t/�t_prev) + a(t)�t�2 We also add
+                  * a simple friction term (f) to the equation: x(t+�t) = x(t) +
+                  * (1-f) * (x(t) - x(t-�t)) * (�t/�t_prev) + a(t)�t�2
+                  */
+                 final float dTdT = dT * dT;
+                 final float x = mPosX + mOneMinusFriction * dTC * (mPosX - mLastPosX) + mAccelX
+                         * dTdT;
+                 final float y = mPosY + mOneMinusFriction * dTC * (mPosY - mLastPosY) + mAccelY
+                         * dTdT;
+                 mLastPosX = mPosX;
+                 mLastPosY = mPosY;
+                 mPosX = x;
+                 mPosY = y;
+                 mAccelX = ax;
+                 mAccelY = ay;
+             }
+            /*
+             *  public void computePhysics(float sx, float sy, float dT, float dTC) {
+             	float vx = (float) (sx * (-springK - mAccelX * dampingK));
+             	float vy = (float) (sy * (-springK - mAccelY * dampingK));
+             	mAccelX += vx * dT;
+             	mAccelY += vy * dT;
+             	
+             	mLastPosX = mPosX;
+             	mLastPosY = mPosY;
+             	mPosX = mAccelX * dT;
+             	mPosY = mAccelY * dT;
+ 	     }*/
+        	
+        	
+        	
         	
         	public void rotate(float theta){
         		int x=face.getWidth();
@@ -196,15 +324,59 @@ public class BobActivity extends Activity {
  private double springK = 0.000003;
             private double dampingK = 0.000035;
             
+            private Bitmap face;
+            
 
             Particle() {
                 // make each particle a bit different by randomizing its
                 // coefficient of friction
                 final float r = ((float) Math.random() - 0.5f) * 0.2f;
                 mOneMinusFriction = 1.0f - sFriction + r;
+                //face=bm;
+                
+                
             }
 
+            
+            
             public void computePhysics(float sx, float sy, float dT, float dTC) {
+                // Force of gravity applied to our virtual object
+                final float m = 1000.0f; // mass of our virtual object
+                final float gx = -sx * m;
+                final float gy = -sy * m;
+
+                /*
+                 * �F = mA <=> A = �F / m We could simplify the code by
+                 * completely eliminating "m" (the mass) from all the equations,
+                 * but it would hide the concepts from this sample code.
+                 */
+                final float invm = 1.0f / m;
+                final float ax = gx * invm;
+                final float ay = gy * invm;
+
+                /*
+                 * Time-corrected Verlet integration The position Verlet
+                 * integrator is defined as x(t+�t) = x(t) + x(t) - x(t-�t) +
+                 * a(t)�t�2 However, the above equation doesn't handle variable
+                 * �t very well, a time-corrected version is needed: x(t+�t) =
+                 * x(t) + (x(t) - x(t-�t)) * (�t/�t_prev) + a(t)�t�2 We also add
+                 * a simple friction term (f) to the equation: x(t+�t) = x(t) +
+                 * (1-f) * (x(t) - x(t-�t)) * (�t/�t_prev) + a(t)�t�2
+                 */
+                final float dTdT = dT * dT;
+                final float x = mPosX + mOneMinusFriction * dTC * (mPosX - mLastPosX) + mAccelX
+                        * dTdT;
+                final float y = mPosY + mOneMinusFriction * dTC * (mPosY - mLastPosY) + mAccelY
+                        * dTdT;
+                mLastPosX = mPosX;
+                mLastPosY = mPosY;
+                mPosX = x;
+                mPosY = y;
+                mAccelX = ax;
+                mAccelY = ay;
+            }
+           /*
+            *  public void computePhysics(float sx, float sy, float dT, float dTC) {
             	float vx = (float) (sx * (-springK - mAccelX * dampingK));
             	float vy = (float) (sy * (-springK - mAccelY * dampingK));
             	mAccelX += vx * dT;
@@ -214,7 +386,7 @@ public class BobActivity extends Activity {
             	mLastPosY = mPosY;
             	mPosX = mAccelX * dT;
             	mPosY = mAccelY * dT;
-	     }
+	     }*/
 
             /*
              * Resolving constraints and collisions with the Verlet integrator
@@ -223,10 +395,11 @@ public class BobActivity extends Activity {
              * satisfied.
              */
             public void resolveCollisionWithBounds() {
-                final float xmax = mHorizontalBound-.03f;
+                final float xmax = mHorizontalBound;
                 //System.out.println(xmax);
+                //System.out.println(mHorizontalBound*mMetersToPixelsX+":"+mVerticalBound*mMetersToPixelsY);
                 
-                final float ymax = mVerticalBound-xmax/3;
+                final float ymax = mVerticalBound;
                 final float x = mPosX;
                 final float y = mPosY;
                 if (x > xmax) {
@@ -309,11 +482,11 @@ public class BobActivity extends Activity {
                             float dy = ball.mPosY - curr.mPosY;
                             float dd = dx * dx + dy * dy;
                             // Check for collisions
-                            /*if (dd <= sBallDiameter2) {
+                            if (dd <= sBallDiameter2) {
                                 /*
                                  * add a little bit of entropy, after nothing is
                                  * perfect in the universe.
-                                 
+                                 */
                                 dx += ((float) Math.random() - 0.5f) * 0.0001f;
                                 dy += ((float) Math.random() - 0.5f) * 0.0001f;
                                 dd = dx * dx + dy * dy;
@@ -325,7 +498,7 @@ public class BobActivity extends Activity {
                                 ball.mPosX += dx * c;
                                 ball.mPosY += dy * c;
                                 more = true;
-                            }*/
+                            }
                         }
                         /*
                          * Finally make sure the particle doesn't intersects
@@ -365,7 +538,7 @@ public class BobActivity extends Activity {
             mSensorManager.unregisterListener(this);
         }
 
-        public SimulationView(Context context,Bitmap bg,Bitmap bm) {
+        public SimulationView(Context context,Bitmap bg,Bitmap bm,RectF box) {
             super(context);
             mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
@@ -382,9 +555,11 @@ public class BobActivity extends Activity {
             Options opts = new Options();
             opts.inDither = true;
             opts.inPreferredConfig = Bitmap.Config.RGB_565;
+            opts.inScaled = false;
             
             backg=Bitmap.createScaledBitmap(bg, metrics.widthPixels, metrics.heightPixels, false);
 			
+            face=new Face(bm,box);
             
         }
 
@@ -393,9 +568,10 @@ public class BobActivity extends Activity {
             // compute the origin of the screen relative to the origin of
             // the bitmap
             mXOrigin = (w - mBitmap.getWidth()) * 0.5f;
-            mYOrigin = (h - mBitmap.getHeight()) * 0.5f;
-            mHorizontalBound = ((w / mMetersToPixelsX - sBallDiameter) * 0.5f);
-            mVerticalBound = ((h / mMetersToPixelsY - sBallDiameter) * 0.5f);
+            mYOrigin =(h - mBitmap.getHeight()) * 0.5f;
+            mHorizontalBound = ((w / mMetersToPixelsX ) * 0.5f);
+            mVerticalBound = ((h / mMetersToPixelsY ) * 0.5f);
+            
         }
 
        
@@ -432,21 +608,23 @@ public class BobActivity extends Activity {
 	            }
             }
             else if (event.sensor.getType() == Sensor.TYPE_GRAVITY){
-            	angle=(float) java.lang.Math.atan(event.values[1]/event.values[0]);
-            	
-            }else{
+            	//face.rotate((float) java.lang.Math.atan(event.values[1]/event.values[0]));
+            }	
+            else{
             	return;
             }
             mSensorTimeStamp = event.timestamp;
             mCpuTimeStamp = System.nanoTime();
         }
+        
+        private Paint p=new Paint();
 
         @Override
         protected void onDraw(Canvas canvas) {
 
-            /*
-             * draw the background
-             */
+        	p.setStyle(Paint.Style.STROKE) ;
+		 	p.setStrokeWidth(4f);
+		 	p.setARGB(255, 0, 200, 0);
 
             canvas.drawBitmap(backg, 0, 0, null);
 
@@ -462,8 +640,10 @@ public class BobActivity extends Activity {
             final float sx = mSensorX;
             final float sy = mSensorY;
 
+            
             particleSystem.update(sx, sy, now);
-
+            face.update(sx, sy, now);
+       
             final float xc = mXOrigin;
             final float yc = mYOrigin;
             final float xs = mMetersToPixelsX;
@@ -481,22 +661,20 @@ public class BobActivity extends Activity {
                 final float y = yc - particleSystem.getPosY(i) * ys;
                 
                 
-                System.out.println(angle);
-                canvas.drawBitmap(rotate(bitmap,-angle*180f/(2f*3.14f)), x, y, null);
+                //System.out.println(angle);
+                //canvas.drawBitmap(rotate(bitmap,-angle*180f/(2f*3.14f)), x, y, null);
             }
+            
+            canvas.drawBitmap(face.face, null, face.rec, p);
 
+            canvas.drawRect(face.boxRec, p);
+            canvas.drawRect(face.rec, p);
+            
             // and make sure to redraw asap
             invalidate();
         }
         
-        private Bitmap rotate(Bitmap bm, float theta){
-    		int x=bm.getWidth();
-    		int y=bm.getHeight();
-    		Matrix matrix = new Matrix();
-    		matrix.setRotate(theta,x/2,y/2);
-    		return Bitmap.createBitmap(bm, 0, 0, x, y, matrix, true);
-    		
-    	}
+       
 
       
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
