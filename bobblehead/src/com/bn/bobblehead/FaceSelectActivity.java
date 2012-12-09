@@ -2,6 +2,7 @@ package com.bn.bobblehead;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -12,6 +13,7 @@ import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
@@ -127,7 +129,7 @@ public class FaceSelectActivity extends Activity {
 			button=Bitmap.createScaledBitmap(but, 100, 100, false);
             
 			
-			Bitmap tmp=BitmapFactory.decodeFile(HomeScreen.fil.toString());
+			Bitmap tmp=BitmapFactory.decodeFile(HomeScreen.backFil.toString());
 			
 			//System.out.println(backg.getRowBytes());
 			
@@ -169,10 +171,10 @@ public class FaceSelectActivity extends Activity {
 			
 		}
 		
-		public Bitmap getCroppedBitmap(Bitmap bitmap,RectF r) {
-		    Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
+		/*public Bitmap getCroppedBitmap(Bitmap bitmap,RectF r) {
+		    Bitmap tmp = Bitmap.createBitmap(bitmap.getWidth(),
 		            bitmap.getHeight(), Config.ARGB_8888);
-		    Canvas canvas = new Canvas(output);
+		    Canvas canvas = new Canvas(tmp);
 
 		    final int color = 0xff424242;
 		    final Paint paint = new Paint();
@@ -185,10 +187,44 @@ public class FaceSelectActivity extends Activity {
 		    canvas.drawOval(r,new Paint());
 		    paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
 		    canvas.drawBitmap(bitmap, rect, rect, paint);
+		    
+		    Matrix matrix = new Matrix();
+		 // resize the bit map
+		 matrix.postScale(1);
+		    Bitmap resizedBitmap = Bitmap.createBitmap(bitmapOrg, 0, 0, 
+	                  width, height, matrix, true); 
+		    
+		    
+		    return output;
+		    
+		  
+		}*/
+		public Bitmap getCroppedBitmap(Bitmap bitmap,RectF r) {
+		    Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
+		            bitmap.getHeight(), Config.ARGB_8888);
+		    Canvas canvas = new Canvas(output);
+
+		    final int color = 0xff424242;
+		    final Paint paint = new Paint();
+		    final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+
+		    paint.setAntiAlias(true);	
+		    canvas.drawARGB(0, 0, 0, 0);
+		    paint.setColor(color);
+
+		    canvas.drawOval(r,new Paint());
+		    paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
+		    canvas.drawBitmap(bitmap, rect, rect, paint);
 
 		    
+		    Matrix matrix = new Matrix();
+			 // resize the bit map
+			 matrix.postScale(1,1);
+			 Bitmap resizedBitmap = Bitmap.createBitmap(output, (int)r.left, (int)r.top, 
+		                 (int) r.width(), (int)r.height(), matrix, true); 
+		    
 		    System.out.println(canvas.getWidth()+":"+canvas.getHeight());
-		    return output;
+		    return resizedBitmap;
 		    
 		  
 		}
@@ -206,7 +242,8 @@ public class FaceSelectActivity extends Activity {
 	            	
 	            }
 			 	//buttonR=new Rect((int)(canvas.getWidth()-100f),(int)(canvas.getHeight()-200f),canvas.getHeight(),canvas.getWidth());
-				canvas.drawBitmap(button, null,buttonR, null);
+				
+			 	canvas.drawBitmap(button, null,buttonR, null);
 							 	
 	           
 	           
@@ -234,11 +271,24 @@ public class FaceSelectActivity extends Activity {
 					Bitmap face=Bitmap.createBitmap(backg,(int)selection.left, (int)selection.top,(int)selection.width(),(int)selection.height());
 					face=getCroppedBitmap(backg,selection);
 					
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	                face.compress(Bitmap.CompressFormat.PNG, 100, baos); 
-	                byte[] b = baos.toByteArray();
 					
-					i.putExtra("face", b);
+				
+					try {
+	                    if(!HomeScreen.faceFil.exists()){HomeScreen.faceFil.createNewFile();}
+	                	FileOutputStream out = new FileOutputStream(HomeScreen.faceFil);
+	                    
+	                    face.compress(Bitmap.CompressFormat.PNG, 90, out);
+	                    
+	                    out.flush();
+	                    out.close();
+	                } catch (Exception ex) {
+	                    ex.printStackTrace();
+	                }
+					//ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	                //face.compress(Bitmap.CompressFormat.PNG, 100, baos); 
+	                //byte[] b = baos.toByteArray();
+					
+					//i.putExtra("face", b);
 					
 					RectF rec= new RectF(selection.left, selection.top,selection.left+selection.width(),selection.top+selection.height());
 					

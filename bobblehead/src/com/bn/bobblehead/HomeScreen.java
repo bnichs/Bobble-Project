@@ -18,7 +18,8 @@ import android.widget.Button;
 
 public class HomeScreen extends Activity {
 
-	public static final File fil=new File(Environment.getExternalStorageDirectory(), "bobblebackg.png");
+	public static final File backFil=new File(Environment.getExternalStorageDirectory(), "bobblebackg.png");
+	public static final File faceFil=new File(Environment.getExternalStorageDirectory(), "bobbleface.png");
     private static final int CAMERA_REQUEST = 1888; 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -38,8 +39,8 @@ public class HomeScreen extends Activity {
                 byte[] b = baos.toByteArray();
                 
                 try {
-                    if(!fil.exists()){fil.createNewFile();}
-                	FileOutputStream out = new FileOutputStream(fil);
+                    if(!backFil.exists()){backFil.createNewFile();}
+                	FileOutputStream out = new FileOutputStream(backFil);
                     
                     photo.compress(Bitmap.CompressFormat.PNG, 90, out);
                     
