@@ -186,7 +186,11 @@ public class FaceSelectActivity extends Activity {
 		    paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
 		    canvas.drawBitmap(bitmap, rect, rect, paint);
 
+		    
+		    System.out.println(canvas.getWidth()+":"+canvas.getHeight());
 		    return output;
+		    
+		  
 		}
 		
 		private Paint p=new Paint();

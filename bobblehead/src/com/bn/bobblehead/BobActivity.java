@@ -29,6 +29,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.BitmapFactory.Options;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -203,9 +204,10 @@ public class BobActivity extends Activity {
                 bottom=bottom+height/5f;
                 
                 boxRec=new RectF(left,top,right,bottom);
+                
                 face=Bitmap.createScaledBitmap(f, (int)width, (int)height, false);
                 
-                System.out.println(face.getHeight());
+                System.out.println(face.getWidth()+":"+face.getHeight());
         	}
         	
         	public void update(float sx, float sy, long timestamp){
@@ -567,8 +569,8 @@ public class BobActivity extends Activity {
         protected void onSizeChanged(int w, int h, int oldw, int oldh) {
             // compute the origin of the screen relative to the origin of
             // the bitmap
-            mXOrigin = (w - mBitmap.getWidth()) * 0.5f;
-            mYOrigin =(h - mBitmap.getHeight()) * 0.5f;
+            mXOrigin = (w - backg.getWidth()) * 0.5f;
+            mYOrigin =(h - backg.getHeight()) * 0.5f;
             mHorizontalBound = ((w / mMetersToPixelsX ) * 0.5f);
             mVerticalBound = ((h / mMetersToPixelsY ) * 0.5f);
             
@@ -627,7 +629,7 @@ public class BobActivity extends Activity {
 		 	p.setARGB(255, 0, 200, 0);
 
             canvas.drawBitmap(backg, 0, 0, null);
-
+            
             /*
              * compute the new position of our object, based on accelerometer
              * data and present time.
@@ -662,11 +664,17 @@ public class BobActivity extends Activity {
                 
                 
                 //System.out.println(angle);
-                //canvas.drawBitmap(rotate(bitmap,-angle*180f/(2f*3.14f)), x, y, null);
+                //canvas.drawBitmap(bitmap, x, y, null);
             }
             
-            canvas.drawBitmap(face.face, null, face.rec, p);
-
+            //face.face.setDensity(300);
+            
+            
+            
+            canvas.drawBitmap(bitmap, 0,50, null);
+            
+            //System.out.println(face.face.getWidth()+":"+face.face.getHeight());
+            
             canvas.drawRect(face.boxRec, p);
             canvas.drawRect(face.rec, p);
             
@@ -674,6 +682,9 @@ public class BobActivity extends Activity {
             invalidate();
         }
         
+       private Rect rectFtoRect(RectF r){
+        	return new Rect((int)r.left,(int)r.top,(int)r.right,(int)r.bottom);
+        }
        
 
       
