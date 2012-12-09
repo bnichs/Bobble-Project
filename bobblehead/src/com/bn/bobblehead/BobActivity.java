@@ -154,19 +154,14 @@ public class BobActivity extends Activity {
         
         class Face{
         	
-        	private Bitmap face;
+        	private final Bitmap faceOrig;
+        	private final RectF faceRectOrig;
         	private float rot;//rotation
         	private RectF rec;//current rectangle occupied
-        	private RectF boxRec;
+        	private RectF faceRectCurr;//current face rectangle. Accounts for rotaion
         	private RectF moveBox;
-        	/*
-        	private float mPosX;
-            private float mPosY;
-            private float mAccelX;
-            private float mAccelY;
-            private float mLastPosX;
-            private float mLastPosY;
-            private float mOneMinusFriction;*/
+        	private Bitmap faceCurr;
+        	
             public float posX,posY;
             private double springK = 0.000003;
             private double dampingK = 0.000035;
@@ -195,7 +190,8 @@ public class BobActivity extends Activity {
                 top=top-height/5f;
                 bottom=bottom+height/5f;
                 
-                boxRec=new RectF(left,top,right,bottom);
+                faceRectCurr=new RectF(left,top,right,bottom);
+                faceRectOrig=new RectF(left,top,right,bottom);
                 
                 int moveL = (int) (left - (left/6f));
                 int moveT = (int) (top - (top/6f));
@@ -205,34 +201,51 @@ public class BobActivity extends Activity {
                 moveBox = new RectF(moveL, moveT, moveR, moveB);
 
                
-                face=BitmapFactory.decodeFile(HomeScreen.faceFil.toString());
+                faceOrig=BitmapFactory.decodeFile(HomeScreen.faceFil.toString());
                 
-                
-                System.out.println(face.getWidth()+":"+face.getHeight());
         	}
         	
+        	private final float maxRot=15;
         	
         	public void update(float sx, float sy, long timestamp){
+        		
+        		if (rot>maxRot){
+        			rot=maxRot;
+        		}if (rot<-maxRot){
+        			rot=-maxRot;
+        		}
+        		
+        		int x=faceOrig.getWidth();
+        		int y=faceOrig.getHeight();
+        		Matrix matrix = new Matrix();
+        		matrix.setRotate(rot,x/2,y);
+        		faceCurr= Bitmap.createBitmap(faceOrig, 0, 0, x, y, matrix, true);
+        		
+        		
+        		float xOffset=((faceCurr.getWidth()-x) * .5f);
+        		float yOffset=((faceCurr.getHeight()-y) * .5f);
+        		
+        		if (xOffset < x/2 || yOffset< y/2 ){
+        		
+	        		faceRectCurr.left=faceRectOrig.left-xOffset;
+	        		faceRectCurr.right=faceRectOrig.right+xOffset;
+	        		
+	        		faceRectCurr.top=faceRectOrig.top-yOffset;
+	        		faceRectCurr.bottom=faceRectOrig.bottom+yOffset;
+        		}
         		computePhysics(sx, sy);
+        		
         	}
         	
         	
         	 public void computePhysics(float sx, float sy) { // move around boxRec
         		t= t + 0.5;
-             	boxRec.left += (float) Math.sin(t);
-             	boxRec.right+= (float) Math.sin(t);
-             	boxRec.top += (float) Math.sin(2*t);
-             	boxRec.bottom+= (float) Math.sin(2*t);
+             	faceRectCurr.left += (float) 4f*Math.sin(2*t);
+             	faceRectCurr.right+= (float) 4f*Math.sin(2*t);
+             	faceRectCurr.top += (float) 6f*Math.sin(2*t);
+             	faceRectCurr.bottom+= (float) 6f*Math.sin(2*t);
  	     }
-        	
-        	public void rotate(float theta){
-        		int x=face.getWidth();
-        		int y=face.getHeight();
-        		Matrix matrix = new Matrix();
-        		matrix.setRotate(theta,x/2,y/2);
-        		face= Bitmap.createBitmap(face, 0, 0, x, y, matrix, true);
-        		
-        	}
+        
 
         }
        
@@ -309,7 +322,7 @@ public class BobActivity extends Activity {
 	           System.out.println(mSensorX+":"+mSensorY);
             }
             else if (event.sensor.getType() == Sensor.TYPE_GRAVITY){
-            	//face.rotate((float) java.lang.Math.atan(event.values[1]/event.values[0]));
+            	face.rot=-((float) java.lang.Math.atan(event.values[1]/event.values[0]))*180f/(3.14f);
             }	
             else{
             	return;
@@ -338,7 +351,7 @@ public class BobActivity extends Activity {
 
             
             face.update(sx, sy, now); // update the position
-            canvas.drawBitmap(face.face,null,face.boxRec, null);
+            canvas.drawBitmap(face.faceCurr,null,face.faceRectCurr, null);
             
           
             
