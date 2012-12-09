@@ -16,23 +16,14 @@
 
 package com.bn.bobblehead;
 
-import java.io.File;
-
-import com.bn.bobblehead.R;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapFactory.Options;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.Path;
-import android.graphics.Path.Direction;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Bitmap.Config;
-import android.graphics.BitmapFactory.Options;
-import android.graphics.PorterDuff.Mode;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -41,7 +32,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.DisplayMetrics;
@@ -64,7 +54,7 @@ import android.view.WindowManager;
 
 public class BobActivity extends Activity {
 
-    private SimulationView mSimulationView;
+    private BobbleView mBobbleView;
     private SensorManager mSensorManager;
     private PowerManager mPowerManager;
     private WindowManager mWindowManager;
@@ -90,24 +80,16 @@ public class BobActivity extends Activity {
         mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, getClass()
                 .getName());
 
-        
-        Intent i = getIntent();
-        //byte[] b = i.getExtras().getByteArray("face");
-        //Bitmap face = BitmapFactory.decodeByteArray(b, 0, b.length);
-        
-        //System.out.println(face.getHeight());
-       // instantiate our simulation view and set it as the activity's content
-        //b = getIntent().getExtras().getByteArray("backg");
-        
-        
+               
+        //get background
         Bitmap bg = BitmapFactory.decodeFile(HomeScreen.backFil.toString());
         
+        //get face rectangle
+        RectF rec = (RectF) getIntent().getParcelableExtra("rec");
         
-        RectF rec = (RectF) i.getParcelableExtra("rec");
         
-        
-        mSimulationView = new SimulationView(this,bg,rec);
-        setContentView(mSimulationView);
+        mBobbleView = new BobbleView(this,bg,rec);
+        setContentView(mBobbleView);
     }
 
     @Override
@@ -121,19 +103,17 @@ public class BobActivity extends Activity {
         mWakeLock.acquire();
 
         // Start the simulation
-        mSimulationView.startSimulation();
+        mBobbleView.startBobble();
+        
+        setContentView(mBobbleView);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        /*
-         * When the activity is paused, we make sure to stop the simulation,
-         * release our sensor resources and wake locks
-         */
 
         // Stop the simulation
-        mSimulationView.stopSimulation();
+        mBobbleView.stopBobble();
 
         // and release our wake-lock
         mWakeLock.release();
@@ -141,7 +121,7 @@ public class BobActivity extends Activity {
     
     
 
-    class SimulationView extends View implements SensorEventListener {
+    class BobbleView extends View implements SensorEventListener {
         // diameter of the balls in meters
         private static final float sBallDiameter = 0.035f;
         private static final float sBallDiameter2 = sBallDiameter * sBallDiameter;
@@ -150,25 +130,25 @@ public class BobActivity extends Activity {
         private static final float sFriction = 1f;
 
         private Sensor mAccelerometer;
-        private long mLastT;
-        private float mLastDeltaT;
+        
 
         private float mXDpi;
         private float mYDpi;
         private float mMetersToPixelsX;
         private float mMetersToPixelsY;
-        private Bitmap mBitmap;
+        
         private Bitmap backg;
         private float mXOrigin;
+        
         private float mYOrigin;
+         private float mHorizontalBound;
+        private float mVerticalBound;
+      
         private float mSensorX;
         private float mSensorY;
         private long mSensorTimeStamp;
         private long mCpuTimeStamp;
-        private float mHorizontalBound;
-        private float mVerticalBound;
-        private float angle=0;
-        
+       
         private Face face;
 
         
@@ -179,14 +159,14 @@ public class BobActivity extends Activity {
         	private RectF rec;//current rectangle occupied
         	private RectF boxRec;
         	private RectF moveBox;
-        	
+        	/*
         	private float mPosX;
             private float mPosY;
             private float mAccelX;
             private float mAccelY;
             private float mLastPosX;
             private float mLastPosY;
-            private float mOneMinusFriction;
+            private float mOneMinusFriction;*/
             public float posX,posY;
             private double springK = 0.000003;
             private double dampingK = 0.000035;
@@ -196,8 +176,8 @@ public class BobActivity extends Activity {
         	public Face(RectF box){
         		
         		rec=box;
-        		final float ran = ((float) Math.random() - 0.5f) * 0.2f;
-                mOneMinusFriction = 1.0f - sFriction + ran;
+        		//final float ran = ((float) Math.random() - 0.5f) * 0.2f;
+                //mOneMinusFriction = 1.0f - sFriction + ran;
         		        	
                 float left=rec.left;
                 float top=rec.top;
@@ -257,17 +237,17 @@ public class BobActivity extends Activity {
         }
        
 
-        public void startSimulation() {
+        public void startBobble() {
 
             mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
             mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY), SensorManager.SENSOR_DELAY_GAME);
         }
 
-        public void stopSimulation() {
+        public void stopBobble() {
             mSensorManager.unregisterListener(this);
         }
 
-        public SimulationView(Context context,Bitmap bg,RectF box) {
+        public BobbleView(Context context,Bitmap bg,RectF box) {
             super(context);
             mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
@@ -307,17 +287,7 @@ public class BobActivity extends Activity {
         public void onSensorChanged(SensorEvent event) {
         	
         	if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
-               
-            /*
-             * record the accelerometer data, the event's timestamp as well as
-             * the current time. The latter is needed so we can calculate the
-             * "present" time during rendering. In this application, we need to
-             * take into account how the screen is rotated with respect to the
-             * sensors (which always return data in a coordinate space aligned
-             * to with the screen in its native orientation).
-             */
-
-	           switch (mDisplay.getRotation()) {
+               switch (mDisplay.getRotation()) {
 	                case Surface.ROTATION_0:
 	                    mSensorX = event.values[0];
 	                    mSensorY = event.values[1];
@@ -360,12 +330,6 @@ public class BobActivity extends Activity {
 
             canvas.drawBitmap(backg, 0, 0, null);
             
-            /*
-             * compute the new position of our object, based on accelerometer
-             * data and present time.
-             */
-
-
             final long now = mSensorTimeStamp + (System.nanoTime() - mCpuTimeStamp);
             
             
@@ -373,25 +337,10 @@ public class BobActivity extends Activity {
             final float sy = mSensorY;
 
             
-           // particleSystem.update(sx, sy, now);
-
-       
-            final float xc = mXOrigin;
-            final float yc = mYOrigin;
-            final float xs = mMetersToPixelsX;
-            final float ys = mMetersToPixelsY;
-            final Bitmap bitmap = mBitmap;
-            
-            //face.face.setDensity(300);
-            
             face.update(sx, sy, now); // update the position
             canvas.drawBitmap(face.face,null,face.boxRec, null);
             
-            //System.out.println(face.face.getWidth()+":"+face.face.getHeight());
-            
-//            canvas.drawRect(face.boxRec, p);
-//            canvas.drawRect(face.rec, p);
-//            canvas.drawRect(face.moveBox, p);
+          
             
             // and make sure to redraw asap
             invalidate();

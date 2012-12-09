@@ -49,12 +49,10 @@ public class HomeScreen extends Activity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                
-      
-                
+                                
                 Intent intent = new Intent(HomeScreen.this, FaceSelectActivity.class);
-                //intent.putExtra("img", b);
                 startActivity(intent);
+                
             }
         });
     }
