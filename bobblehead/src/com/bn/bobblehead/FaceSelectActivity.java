@@ -41,6 +41,7 @@ public class FaceSelectActivity extends Activity {
 	private PowerManager mPowerManager;
 	private WindowManager mWindowManager;
 	private WakeLock mWakeLock;
+	private String backPath;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -61,7 +62,9 @@ public class FaceSelectActivity extends Activity {
 		// Create a bright wake lock
 		mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, getClass()
 				.getName());
-
+		
+		backPath=getIntent().getExtras().getString("backPath");
+		
 		// instantiate our simulation view and set it as the activity's content
 		mSelectView = new SelectView(this);
 		setContentView(mSelectView);
@@ -124,7 +127,7 @@ public class FaceSelectActivity extends Activity {
 			
 			
 			//Get background
-			tmp=BitmapFactory.decodeFile(HomeScreen.backFil.toString());
+			tmp=BitmapFactory.decodeFile(backPath);
 			backg=Bitmap.createScaledBitmap(tmp, metrics.widthPixels, metrics.heightPixels, false);
 
 			Options opts = new Options();
@@ -204,6 +207,7 @@ public class FaceSelectActivity extends Activity {
 					
 					//save the face location
 					RectF rec= new RectF(selection.left, selection.top,selection.left+selection.width(),selection.top+selection.height());
+					i.putExtra("backPath", backPath);
 					i.putExtra("rec", rec);
 					startActivity(i);
 					return true;
@@ -288,9 +292,9 @@ public class FaceSelectActivity extends Activity {
 
 	private final class OkOnClickListener implements DialogInterface.OnClickListener {
 		public void onClick(DialogInterface dialog, int which) {
-			dialog.dismiss();
-			dialogOn =false;
 			
+			dialogOn =false;
+			dialog.dismiss();
 			//SelectView.this.flag=false;
 		}
 	}

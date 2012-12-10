@@ -44,7 +44,7 @@
         <activity
             
             android:name=".FaceSelectActivity"
-            android:launchMode="singleInstance"
+            
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:screenOrientation="landscape"
             android:label="@string/title_activity_face_select" >

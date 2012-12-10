@@ -61,7 +61,7 @@ public class BobActivity extends Activity {
     private WindowManager mWindowManager;
     private Display mDisplay;
     private WakeLock mWakeLock;
-
+    private String backPath;
     
     static {
         System.loadLibrary("imageprocessing");
@@ -89,12 +89,14 @@ public class BobActivity extends Activity {
         mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, getClass()
                 .getName());
 
-               
+        Intent i = getIntent();     
+        
         //get background
-        Bitmap bg = BitmapFactory.decodeFile(HomeScreen.backFil.toString());
+        Bitmap bg = BitmapFactory.decodeFile(i.getStringExtra("backPath"));
         
         //get face rectangle
-        RectF rec = (RectF) getIntent().getParcelableExtra("rec");
+        RectF rec = (RectF) i.getParcelableExtra("rec");
+        
         
         
         mBobbleView = new BobbleView(this,bg,rec);
@@ -288,6 +290,8 @@ public class BobActivity extends Activity {
         }
 */
        
+        private static final float maxRot=.1f;
+        
         public void onSensorChanged(SensorEvent event) {
         	
         	if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
@@ -313,7 +317,8 @@ public class BobActivity extends Activity {
 	           System.out.println(mSensorX+":"+mSensorY);
             }
             else if (event.sensor.getType() == Sensor.TYPE_GRAVITY){
-            	face.rot=-((float) java.lang.Math.atan(event.values[1]/event.values[0]))*180f/(3.14f);
+            	float rotation=-((float) java.lang.Math.atan(event.values[1]/event.values[0]))*180f/(3.14f);
+            	face.rot=Math.abs(rotation-face.rot)>maxRot ? maxRot : rotation;
             }	
             else{
             	return;
