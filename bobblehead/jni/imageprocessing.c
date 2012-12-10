@@ -11,7 +11,7 @@
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
-static void brightness(AndroidBitmapInfo* info, void* pixels, float brightnessValue){
+static void fisheye(AndroidBitmapInfo* info, void* pixels){
 	uint32_t* pix;
     uint32_t* pixCopy; // copy of the pixel
     float h = info->height;
@@ -83,7 +83,7 @@ static void brightness(AndroidBitmapInfo* info, void* pixels, float brightnessVa
 }
 
 
-JNIEXPORT void JNICALL Java_com_bn_bobblehead_BobActivity_brightness(JNIEnv * env, jobject  obj, jobject bitmap, jfloat brightnessValue)
+JNIEXPORT void JNICALL Java_com_bn_bobblehead_BobActivity_fisheye(JNIEnv * env, jobject  obj, jobject bitmap)
 {
     
     AndroidBitmapInfo  info;
@@ -103,7 +103,7 @@ JNIEXPORT void JNICALL Java_com_bn_bobblehead_BobActivity_brightness(JNIEnv * en
         LOGE("AndroidBitmap_lockPixels() failed ! error=%d", ret);
     }
     
-    brightness(&info,pixels, brightnessValue);
+    fisheye(&info,pixels);
     
     AndroidBitmap_unlockPixels(env, bitmap);
 }

@@ -66,7 +66,7 @@ public class BobActivity extends Activity {
         System.loadLibrary("imageprocessing");
       }
 
-	public native void brightness(Bitmap bmp, float brightness);
+	public native void fisheye(Bitmap bmp);
 	
 	
     /** Called when the activity is first created. */
@@ -193,7 +193,7 @@ public class BobActivity extends Activity {
                 
                
                 faceOrig=BitmapFactory.decodeFile(HomeScreen.faceFil.toString());
-                brightness(faceOrig, (float) .9); // native interface lines
+                fisheye(faceOrig); // native interface lines
                 
         	}
 
