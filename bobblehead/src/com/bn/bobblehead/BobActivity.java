@@ -167,6 +167,7 @@ public class BobActivity extends Activity {
             private final float maxRot=20;
             
             
+            
         	public Face(RectF box){
         		
         		rec=box;
@@ -231,10 +232,10 @@ public class BobActivity extends Activity {
         	
         	 public void computePhysics(float sx, float sy) { // move around boxRec
         		t = t + 0.5;
-    			faceRectCurr.left += (float) 4f*Math.sin(2*t);
-             	faceRectCurr.right+= (float) 4f*Math.sin(2*t);
-             	faceRectCurr.top += (float) 6f*Math.sin(2*t);
-    			faceRectCurr.bottom+= (float) 6f*Math.sin(2*t);
+    			faceRectCurr.left += (float) 8f*Math.sin(2*t);
+             	faceRectCurr.right+= (float) 8f*Math.sin(2*t);
+             	faceRectCurr.top += (float) 16f*Math.sin(t/5f);
+    			faceRectCurr.bottom+= (float) 16f*Math.sin(t/5f);
         	 }
         
         }
@@ -333,9 +334,9 @@ public class BobActivity extends Activity {
 			}
 			return true;
         }
+       
         
         private Paint p=new Paint();
-
 
         @Override
         protected void onDraw(Canvas canvas) {
@@ -356,15 +357,10 @@ public class BobActivity extends Activity {
             face.update(sx, sy, now); // update the position
             canvas.drawBitmap(face.faceCurr,null,face.faceRectCurr, null);
             
-          
-            
             // and make sure to redraw asap
             invalidate();
         }
-        
-       private Rect rectFtoRect(RectF r){
-        	return new Rect((int)r.left,(int)r.top,(int)r.right,(int)r.bottom);
-        }
+    
        
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
         }

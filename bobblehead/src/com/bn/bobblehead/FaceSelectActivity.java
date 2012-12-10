@@ -92,25 +92,37 @@ public class FaceSelectActivity extends Activity {
 		public boolean flag;
 
 		private final Bitmap button;
+		//private final Bitmap buttonOn;
 
-		private Sensor mAccelerometer;
+		
 		private Bitmap backg;
 		private final Paint p=new Paint();
-
+		private Rect buttonR;
+		private RectF selection;
+		private boolean rectDrawn=false;
+		private int ooX;//ovals originx
+		private int ooY;//avals origin y
+		int top=0;
+		int left=0;
+		int bottom=0;
+		int right=0;
 
 		public SelectView(Context context) {
 			super(context);
-			mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
+			
+			//get screen dims
 			DisplayMetrics metrics = new DisplayMetrics();
 			getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
 			//get go button and dimensions
 			Bitmap tmp = BitmapFactory.decodeResource(getResources(), R.drawable.go_button);
 			button=Bitmap.createScaledBitmap(tmp, 200, 200, false);
-			
+			/*tmp = BitmapFactory.decodeResource(getResources(), R.drawable.go_button_pushed);
+			buttonOn=Bitmap.createScaledBitmap(tmp, 200, 200, false);
+			*/
 			buttonR=new Rect(metrics.widthPixels-200,metrics.heightPixels-200,metrics.widthPixels,metrics.heightPixels);
-
+			
+			
 			//Get background
 			tmp=BitmapFactory.decodeFile(HomeScreen.backFil.toString());
 			backg=Bitmap.createScaledBitmap(tmp, metrics.widthPixels, metrics.heightPixels, false);
@@ -119,16 +131,14 @@ public class FaceSelectActivity extends Activity {
 			opts.inDither = true;
 			opts.inPreferredConfig = Bitmap.Config.RGB_565;
 
-
+			p.setStyle(Paint.Style.STROKE) ;
+			p.setStrokeWidth(4f);
+			p.setARGB(255, 0, 200, 0);
+						
+			showDialog(DIALOG_ALERT);
 		}
 
 
-		public void onAccuracyChanged(Sensor sensor, int accuracy) {
-			// TODO Auto-generated method stub
-
-		}
-
-		
 		//Use to crop a bitmap to the specified rectangle using an oval cut
 		public Bitmap getCroppedBitmap(Bitmap bitmap,RectF r) {
 			Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
@@ -160,48 +170,28 @@ public class FaceSelectActivity extends Activity {
 
 		}
 
-		
-
 		protected void onDraw(Canvas canvas) {
-			p.setStyle(Paint.Style.STROKE) ;
-			p.setStrokeWidth(4f);
-			p.setARGB(255, 0, 200, 0);
 			canvas.drawBitmap(backg, 0, 0, null);
 			if (selection != null){
 				canvas.drawOval(selection, p);
-			}
+			}			
 			canvas.drawBitmap(button, null,buttonR, null);
-
-			// and make sure to redraw asap
 			invalidate();
 		}
-
-		private Rect buttonR;
-		private RectF selection;
-		private boolean rectDrawn=false;
-		private int ooX;//ovals originx
-		private int ooY;//avals origin y
-		int top=0;
-		int left=0;
-		int bottom=0;
-		int right=0;
-		
-		
 		
 		public boolean onTouchEvent(MotionEvent e) {
-			// TODO Auto-generated method stub
-
-			int x = (int) e.getX();
+			int x = (int) e.getX();//input coords
 			int y = (int) e.getY();
-
 
 			//Check for button press
 			if (buttonR.contains(x, y) ){
-				if (selection != null && selection.width()>0 && selection.height() >0){
+				
+				if (selection != null && selection.width()>20 && selection.height() >20){
 					Intent i = new Intent(FaceSelectActivity.this,BobActivity.class);
 					Bitmap face=Bitmap.createBitmap(backg,(int)selection.left, (int)selection.top,(int)selection.width(),(int)selection.height());
 					face=getCroppedBitmap(backg,selection);
 
+					//Save the file for later use
 					try {
 						if(!HomeScreen.faceFil.exists()){HomeScreen.faceFil.createNewFile();}
 						FileOutputStream out = new FileOutputStream(HomeScreen.faceFil);
@@ -212,19 +202,17 @@ public class FaceSelectActivity extends Activity {
 						ex.printStackTrace();
 					}
 					
+					//save the face location
 					RectF rec= new RectF(selection.left, selection.top,selection.left+selection.width(),selection.top+selection.height());
-
 					i.putExtra("rec", rec);
-
 					startActivity(i);
 					return true;
-
 				}
 				else{
-					
+					if (!dialogOn){
 						showDialog(DIALOG_ALERT);
-						android.os.SystemClock.sleep(1000);
-					
+						dialogOn=true;
+					}
 				}
 
 			}
@@ -268,9 +256,10 @@ public class FaceSelectActivity extends Activity {
 			return true;
 		}
 
-
-
-
+		public void onAccuracyChanged(Sensor sensor, int accuracy) {
+					// TODO Auto-generated method stub
+		}
+		
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
 
@@ -280,18 +269,15 @@ public class FaceSelectActivity extends Activity {
 
 
 	private static final int DIALOG_ALERT = 10;
-
+	private static boolean dialogOn=false;
 	
-	
-
-
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
 		case DIALOG_ALERT:
 			// Create out AlterDialog
 			Builder builder = new AlertDialog.Builder(this);
-			builder.setMessage("Please Select a face.");
+			builder.setMessage("Please Select a face by drawing an oval around it.");
 			builder.setCancelable(true);
 			builder.setPositiveButton("Ok", new OkOnClickListener());
 			AlertDialog dialog = builder.create();
@@ -303,6 +289,8 @@ public class FaceSelectActivity extends Activity {
 	private final class OkOnClickListener implements DialogInterface.OnClickListener {
 		public void onClick(DialogInterface dialog, int which) {
 			dialog.dismiss();
+			dialogOn =false;
+			
 			//SelectView.this.flag=false;
 		}
 	}
