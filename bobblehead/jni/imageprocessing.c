@@ -11,23 +11,23 @@
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
-static int rgb_clamp(int value) {
-    if(value > 255) {
-        return 255;
-    }
-    if(value < 0) {
-        return 0;
-    }
-    return value;
-}
-
 static void brightness(AndroidBitmapInfo* info, void* pixels, float brightnessValue){
 	uint32_t* pix;
+    uint32_t* pixCopy; // copy of the pixel
     float h = info->height;
     float w = info->width;
+    
+    // copy of the bitmap sized width * height
+    pixCopy = (uint32_t*)malloc(sizeof(uint32_t) * w * h);
+    memcpy (pixCopy, pixels, sizeof(uint32_t) * w * h );
+
+    
+    
     // for each row
     int y = 0;
     for (y;y<h;y++){
+        
+        
         // normalize y coordinate to -1 ... 1
         double ny = ((2*y)/h)-1;
         // pre calculate ny*ny
@@ -35,7 +35,7 @@ static void brightness(AndroidBitmapInfo* info, void* pixels, float brightnessVa
         // for each column
         int x = 0;
         for (x;x<w;x++) {
-            pix = (uint32_t*)pixels;
+            pix = (uint32_t*) pixels;
             
             // normalize x coordinate to -1 ... 1
             double nx = ((2*x)/w)-1;
@@ -71,8 +71,7 @@ static void brightness(AndroidBitmapInfo* info, void* pixels, float brightnessVa
                     // make sure that position stays within arrays
                     if (srcpos>=0 & srcpos < w*h){
                         // get new pixel (x2,y2) and put it to target array at (x,y)
-
-                        pix[(int)(y*w+x)] = pix[srcpos];
+                        pix[(int)(y*w+x)] = pixCopy[srcpos];
                     }
                 }
             }
