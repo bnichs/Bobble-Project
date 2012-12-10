@@ -36,6 +36,7 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.DisplayMetrics;
 import android.view.Display;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
@@ -229,14 +230,13 @@ public class BobActivity extends Activity {
         	
         	
         	 public void computePhysics(float sx, float sy) { // move around boxRec
-        		t= t + 0.5;
-             	faceRectCurr.left += (float) 4f*Math.sin(2*t);
+        		t = t + 0.5;
+    			faceRectCurr.left += (float) 4f*Math.sin(2*t);
              	faceRectCurr.right+= (float) 4f*Math.sin(2*t);
              	faceRectCurr.top += (float) 6f*Math.sin(2*t);
-             	faceRectCurr.bottom+= (float) 6f*Math.sin(2*t);
- 	     }
+    			faceRectCurr.bottom+= (float) 6f*Math.sin(2*t);
+        	 }
         
-
         }
        
 
@@ -319,6 +319,19 @@ public class BobActivity extends Activity {
             }
             mSensorTimeStamp = event.timestamp;
             mCpuTimeStamp = System.nanoTime();
+        }
+        
+        public boolean onTouchEvent(MotionEvent e) {
+			// TODO Auto-generated method stub
+
+			float x = (float) e.getX();
+			float y = (float) e.getY();
+			final long now = mSensorTimeStamp + (System.nanoTime() - mCpuTimeStamp);
+			
+			if (face.faceRectCurr.contains(x, y)) {
+				face.update(x, y, now);
+			}
+			return true;
         }
         
         private Paint p=new Paint();
