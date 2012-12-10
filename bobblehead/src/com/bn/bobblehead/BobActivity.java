@@ -122,13 +122,6 @@ public class BobActivity extends Activity {
     
 
     class BobbleView extends View implements SensorEventListener {
-        // diameter of the balls in meters
-        private static final float sBallDiameter = 0.035f;
-        private static final float sBallDiameter2 = sBallDiameter * sBallDiameter;
-
-        // friction of the virtual table and air
-        private static final float sFriction = 1f;
-
         private Sensor mAccelerometer;
         
 
@@ -138,11 +131,7 @@ public class BobActivity extends Activity {
         private float mMetersToPixelsY;
         
         private Bitmap backg;
-        private float mXOrigin;
-        
-        private float mYOrigin;
-         private float mHorizontalBound;
-        private float mVerticalBound;
+
       
         private float mSensorX;
         private float mSensorY;
@@ -159,14 +148,15 @@ public class BobActivity extends Activity {
         	private float rot;//rotation
         	private RectF rec;//current rectangle occupied
         	private RectF faceRectCurr;//current face rectangle. Accounts for rotaion
-        	private RectF moveBox;
+
         	private Bitmap faceCurr;
         	
             public float posX,posY;
-            private double springK = 0.000003;
-            private double dampingK = 0.000035;
+
         	private double t;
             private float width, height;
+            
+            private final float maxRot=20;
             
         	public Face(RectF box){
         		
@@ -193,19 +183,16 @@ public class BobActivity extends Activity {
                 faceRectCurr=new RectF(left,top,right,bottom);
                 faceRectOrig=new RectF(left,top,right,bottom);
                 
-                int moveL = (int) (left - (left/6f));
-                int moveT = (int) (top - (top/6f));
-                int moveR = (int) (right + (right/6f));
-                int moveB = (int) (bottom + (bottom/6f));
                 
-                moveBox = new RectF(moveL, moveT, moveR, moveB);
+                
+                
 
                
                 faceOrig=BitmapFactory.decodeFile(HomeScreen.faceFil.toString());
                 
         	}
         	
-        	private final float maxRot=15;
+        	
         	
         	public void update(float sx, float sy, long timestamp){
         		
@@ -272,30 +259,30 @@ public class BobActivity extends Activity {
             mMetersToPixelsY = mYDpi / 0.0254f;
 
            
-            //mBitmap = bm;
+           
             
             Options opts = new Options();
             opts.inDither = true;
             opts.inPreferredConfig = Bitmap.Config.RGB_565;
-            opts.inScaled = false;
+           
             
             backg=Bitmap.createScaledBitmap(bg, metrics.widthPixels, metrics.heightPixels, false);
 			
             face=new Face(box);
             
         }
-
+/*
         @Override
         protected void onSizeChanged(int w, int h, int oldw, int oldh) {
             // compute the origin of the screen relative to the origin of
             // the bitmap
-            mXOrigin = (w - backg.getWidth()) * 0.5f;
-            mYOrigin =(h - backg.getHeight()) * 0.5f;
-            mHorizontalBound = ((w / mMetersToPixelsX ) * 0.5f);
-            mVerticalBound = ((h / mMetersToPixelsY ) * 0.5f);
+           // mXOrigin = (w - backg.getWidth()) * 0.5f;
+           // mYOrigin =(h - backg.getHeight()) * 0.5f;
+           // mHorizontalBound = ((w / mMetersToPixelsX ) * 0.5f);
+            //mVerticalBound = ((h / mMetersToPixelsY ) * 0.5f);
             
         }
-
+*/
        
         public void onSensorChanged(SensorEvent event) {
         	

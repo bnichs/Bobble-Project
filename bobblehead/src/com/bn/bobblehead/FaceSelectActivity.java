@@ -89,11 +89,13 @@ public class FaceSelectActivity extends Activity {
 
 	class SelectView extends View implements OnClickListener {
 
+		public boolean flag;
+
 		private final Bitmap button;
 
 		private Sensor mAccelerometer;
 		private Bitmap backg;
-
+		private final Paint p=new Paint();
 
 
 		public SelectView(Context context) {
@@ -105,8 +107,9 @@ public class FaceSelectActivity extends Activity {
 
 			//get go button and dimensions
 			Bitmap tmp = BitmapFactory.decodeResource(getResources(), R.drawable.go_button);
-			button=Bitmap.createScaledBitmap(tmp, 100, 100, false);
-			buttonR=new Rect(metrics.widthPixels-150,metrics.heightPixels-200,metrics.widthPixels,metrics.heightPixels);
+			button=Bitmap.createScaledBitmap(tmp, 200, 200, false);
+			
+			buttonR=new Rect(metrics.widthPixels-200,metrics.heightPixels-200,metrics.widthPixels,metrics.heightPixels);
 
 			//Get background
 			tmp=BitmapFactory.decodeFile(HomeScreen.backFil.toString());
@@ -157,7 +160,7 @@ public class FaceSelectActivity extends Activity {
 
 		}
 
-		private Paint p=new Paint();
+		
 
 		protected void onDraw(Canvas canvas) {
 			p.setStyle(Paint.Style.STROKE) ;
@@ -182,6 +185,9 @@ public class FaceSelectActivity extends Activity {
 		int left=0;
 		int bottom=0;
 		int right=0;
+		
+		
+		
 		public boolean onTouchEvent(MotionEvent e) {
 			// TODO Auto-generated method stub
 
@@ -190,8 +196,8 @@ public class FaceSelectActivity extends Activity {
 
 
 			//Check for button press
-			if (buttonR.contains(x, y)){
-				if (selection.width()>0 && selection.height() >0){
+			if (buttonR.contains(x, y) ){
+				if (selection != null && selection.width()>0 && selection.height() >0){
 					Intent i = new Intent(FaceSelectActivity.this,BobActivity.class);
 					Bitmap face=Bitmap.createBitmap(backg,(int)selection.left, (int)selection.top,(int)selection.width(),(int)selection.height());
 					face=getCroppedBitmap(backg,selection);
@@ -211,17 +217,19 @@ public class FaceSelectActivity extends Activity {
 					i.putExtra("rec", rec);
 
 					startActivity(i);
-					finish();
 					return true;
 
 				}
-				else {
-					showDialog(DIALOG_ALERT);
+				else{
+					
+						showDialog(DIALOG_ALERT);
+						android.os.SystemClock.sleep(1000);
+					
 				}
 
 			}
 
-			boolean backFlag=false;//true if the oval is being drawn towards the origin
+			
 			//Check for oval drawings
 			switch (e.getAction()) {
 				//get an origin for the oval
@@ -294,7 +302,11 @@ public class FaceSelectActivity extends Activity {
 
 	private final class OkOnClickListener implements DialogInterface.OnClickListener {
 		public void onClick(DialogInterface dialog, int which) {
-			//FaceSelectActivity.this.finish();
+			dialog.dismiss();
+			//SelectView.this.flag=false;
 		}
 	}
+	
+	
+	
 }

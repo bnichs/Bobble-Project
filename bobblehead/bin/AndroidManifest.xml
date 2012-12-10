@@ -23,14 +23,15 @@
             </intent-filter>
         </activity>
         <activity
+            
             android:name=".BobActivity"
-            android:noHistory="true"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:launchMode="singleInstance"
             android:label="@string/title_activity_bob"
             android:screenOrientation="landscape" >
         </activity>
         <activity
             android:name=".BobbleActivity"
-            android:noHistory="true"
             android:label="@string/title_activity_bobble"
             android:screenOrientation="landscape" >
             <intent-filter>
@@ -40,9 +41,11 @@
             </intent-filter>
         </activity>
         <activity
+            
             android:name=".FaceSelectActivity"
+            android:launchMode="singleInstance"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:screenOrientation="landscape"
-            android:noHistory="true"
             android:label="@string/title_activity_face_select" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
