@@ -61,6 +61,14 @@ public class BobActivity extends Activity {
     private Display mDisplay;
     private WakeLock mWakeLock;
 
+    
+    static {
+        System.loadLibrary("imageprocessing");
+      }
+
+	public native void brightness(Bitmap bmp, float brightness);
+	
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -139,8 +147,7 @@ public class BobActivity extends Activity {
         private long mCpuTimeStamp;
        
         private Face face;
-
-        
+    	
         class Face{
         	
         	private final Bitmap faceOrig;
@@ -157,6 +164,7 @@ public class BobActivity extends Activity {
             private float width, height;
             
             private final float maxRot=20;
+            
             
         	public Face(RectF box){
         		
@@ -183,16 +191,12 @@ public class BobActivity extends Activity {
                 faceRectCurr=new RectF(left,top,right,bottom);
                 faceRectOrig=new RectF(left,top,right,bottom);
                 
-                
-                
-                
-
                
                 faceOrig=BitmapFactory.decodeFile(HomeScreen.faceFil.toString());
+                brightness(faceOrig, (float) 1); // native interface lines
                 
         	}
-        	
-        	
+
         	
         	public void update(float sx, float sy, long timestamp){
         		
@@ -207,8 +211,7 @@ public class BobActivity extends Activity {
         		Matrix matrix = new Matrix();
         		matrix.setRotate(rot,x/2,y);
         		faceCurr= Bitmap.createBitmap(faceOrig, 0, 0, x, y, matrix, true);
-        		
-        		
+
         		float xOffset=((faceCurr.getWidth()-x) * .5f);
         		float yOffset=((faceCurr.getHeight()-y) * .5f);
         		
