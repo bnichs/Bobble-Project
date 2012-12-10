@@ -22,7 +22,7 @@ static int rgb_clamp(int value) {
 }
 
 static void brightness(AndroidBitmapInfo* info, void* pixels, float brightnessValue){
-	uint32_t* line;
+	uint32_t* pix;
     float h = info->height;
     float w = info->width;
     // for each row
@@ -34,8 +34,9 @@ static void brightness(AndroidBitmapInfo* info, void* pixels, float brightnessVa
         double ny2 = ny*ny;
         // for each column
         int x = 0;
-        for (x;x<w;x++)
-        {
+        for (x;x<w;x++) {
+            pix = (uint32_t*)pixels;
+            
             // normalize x coordinate to -1 ... 1
             double nx = ((2*x)/w)-1;
             // pre calculate nx*nx
@@ -49,14 +50,12 @@ static void brightness(AndroidBitmapInfo* info, void* pixels, float brightnessVa
             // you can experiment with images with different dimensions
             double r = sqrt(nx2+ny2);
             // discard pixels outside from circle!
-            if (0.0<=r&&r<=1.0)
-            {
+            if (0.0<=r&&r<=1.0){
                 double nr = sqrt(1.0-r*r);
                 // new distance is between 0 ... 1
                 nr = (r + (1.0-nr)) / 2.0;
                 // discard radius greater than 1.0
-                if (nr<=1.0)
-                {
+                if (nr<=1.0){
                     // calculate the angle for polar coordinates
                     double theta = atan2(ny,nx);
                     // calculate new x position with new distance in same angle
@@ -70,11 +69,10 @@ static void brightness(AndroidBitmapInfo* info, void* pixels, float brightnessVa
                     // find (x2,y2) position from source pixels
                     int srcpos = (int)(y2*w+x2);
                     // make sure that position stays within arrays
-                    if (srcpos>=0 & srcpos < w*h)
-                    {
+                    if (srcpos>=0 & srcpos < w*h){
                         // get new pixel (x2,y2) and put it to target array at (x,y)
 
-                        (uint32_t*)(pixels[(int)(y*w+x)]) = (uint32_t*)(pixels[srcpos]);
+                        pix[(int)(y*w+x)] = pix[srcpos];
                     }
                 }
             }
