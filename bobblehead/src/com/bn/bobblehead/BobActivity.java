@@ -193,7 +193,7 @@ public class BobActivity extends Activity {
                 
                
                 faceOrig=BitmapFactory.decodeFile(HomeScreen.faceFil.toString());
-                brightness(faceOrig, (float) 1); // native interface lines
+                brightness(faceOrig, (float) .9); // native interface lines
                 
         	}
 
