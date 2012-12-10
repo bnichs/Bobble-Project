@@ -12,18 +12,28 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 
 public class HomeScreen extends Activity {
 
+	private PowerManager mPowerManager;
+	private WakeLock mWakeLock;
+	
 	public static final File backFil=new File(Environment.getExternalStorageDirectory(), "bobblebackg.png");
 	public static final File faceFil=new File(Environment.getExternalStorageDirectory(), "bobbleface.png");
     private static final int CAMERA_REQUEST = 1888; 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        
+    	mPowerManager = (PowerManager) getSystemService(POWER_SERVICE);
+    	mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, getClass()
+				.getName());
+    	
+    	super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_screen);
         Button photoButton = (Button) this.findViewById(R.id.button1);
         photoButton.setOnClickListener(new View.OnClickListener() {
@@ -79,4 +89,23 @@ public class HomeScreen extends Activity {
     	getMenuInflater().inflate(R.menu.activity_home_screen, menu);
         return true;
     }
+    
+    
+   @Override
+	protected void onResume() {
+		super.onResume();
+		
+		mWakeLock.acquire();
+
+		
+	}
+    
+    @Override
+	protected void onPause() {
+		super.onPause();
+	
+		mWakeLock.release();
+		// and release our wake-lock
+		
+	}
 }
