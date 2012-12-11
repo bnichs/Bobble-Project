@@ -234,8 +234,8 @@ public class BobActivity extends Activity {
         	
         	 public void computePhysics(float sx, float sy) { // move around boxRec
         		t = t + 0.5;
-    			faceRectCurr.left += (float) 8f*Math.sin(2*t);
-             	faceRectCurr.right+= (float) 8f*Math.sin(2*t);
+    			faceRectCurr.left += (float) 8f*Math.sin(t);
+             	faceRectCurr.right+= (float) 8f*Math.sin(t);
              	faceRectCurr.top += (float) 16f*Math.sin(t/5f);
     			faceRectCurr.bottom+= (float) 16f*Math.sin(t/5f);
         	 }
@@ -314,7 +314,6 @@ public class BobActivity extends Activity {
 	                    break;
 	            }
 	           
-	           System.out.println(mSensorX+":"+mSensorY);
             }
             else if (event.sensor.getType() == Sensor.TYPE_GRAVITY){
             	face.rot=-((float) java.lang.Math.atan(event.values[1]/event.values[0]))*180f/(3.14f);
