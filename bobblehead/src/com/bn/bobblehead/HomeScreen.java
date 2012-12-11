@@ -25,6 +25,8 @@ public class HomeScreen extends Activity {
 			Environment.getExternalStorageDirectory(), "bobblebackg.png");
 	public static final File faceFil = new File(
 			Environment.getExternalStorageDirectory(), "bobbleface.png");
+	public static final File tmpFil = new File(
+			Environment.getExternalStorageDirectory(), "bobbletmp.png");
 	private static final int CAMERA_REQUEST = 1888;
 	private static final int GALLERY_REQUEST = 1555;
 
@@ -40,8 +42,10 @@ public class HomeScreen extends Activity {
 			public void onClick(View v) {
 				 Intent cameraIntent = new
 				 Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+				 cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(backFil));
 				 startActivityForResult(cameraIntent, CAMERA_REQUEST);
-				/*Bitmap photo = BitmapFactory.decodeResource(getResources(),
+				
+				 /*Bitmap photo = BitmapFactory.decodeResource(getResources(),
 						R.drawable.test);
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				photo.compress(Bitmap.CompressFormat.PNG, 100, baos);
@@ -105,8 +109,12 @@ public class HomeScreen extends Activity {
 			break;
 		case CAMERA_REQUEST:
 			if (resultCode == RESULT_OK) {
-				backg = (Bitmap) data.getExtras().get("data");
-				try {
+				
+				
+				
+				
+				//backg = (Bitmap) data.getExtras().get("data");
+				/*try {
 					if (!backFil.exists()) {
 						backFil.createNewFile();
 					}
@@ -118,6 +126,7 @@ public class HomeScreen extends Activity {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+				*/
 				
 				filePath=backFil.getPath();
 

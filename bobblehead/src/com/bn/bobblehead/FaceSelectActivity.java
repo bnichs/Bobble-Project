@@ -127,9 +127,12 @@ public class FaceSelectActivity extends Activity {
 			
 			
 			//Get background
-			tmp=BitmapFactory.decodeFile(backPath);
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inSampleSize = 2; 
+			tmp=BitmapFactory.decodeFile(backPath,options);
 			backg=Bitmap.createScaledBitmap(tmp, metrics.widthPixels, metrics.heightPixels, false);
 
+			
 			Options opts = new Options();
 			opts.inDither = true;
 			opts.inPreferredConfig = Bitmap.Config.RGB_565;
