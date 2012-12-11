@@ -313,7 +313,7 @@ public class BobActivity extends Activity {
 	                    mSensorY = -event.values[0];
 	                    break;
 	            }
-	           
+	           / 
             }
             else if (event.sensor.getType() == Sensor.TYPE_GRAVITY){
             	face.rot=-((float) java.lang.Math.atan(event.values[1]/event.values[0]))*180f/(3.14f);
