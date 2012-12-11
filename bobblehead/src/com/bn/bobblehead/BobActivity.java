@@ -317,8 +317,8 @@ public class BobActivity extends Activity {
 	           System.out.println(mSensorX+":"+mSensorY);
             }
             else if (event.sensor.getType() == Sensor.TYPE_GRAVITY){
-            	float rotation=-((float) java.lang.Math.atan(event.values[1]/event.values[0]))*180f/(3.14f);
-            	face.rot=Math.abs(rotation-face.rot)>maxRot ? maxRot : rotation;
+            	face.rot=-((float) java.lang.Math.atan(event.values[1]/event.values[0]))*180f/(3.14f);
+            	
             }	
             else{
             	return;
