@@ -22,12 +22,10 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.DisplayMetrics;
-import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -37,7 +35,6 @@ import android.view.WindowManager;
 public class FaceSelectActivity extends Activity {
 
 	private SelectView mSelectView;
-	private SensorManager mSensorManager;
 	private PowerManager mPowerManager;
 	private WindowManager mWindowManager;
 	private WakeLock mWakeLock;
@@ -49,9 +46,7 @@ public class FaceSelectActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		
-		// Get an instance of the SensorManager
-		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-
+		
 		// Get an instance of the PowerManager
 		mPowerManager = (PowerManager) getSystemService(POWER_SERVICE);
 
@@ -84,8 +79,6 @@ public class FaceSelectActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-	
-		// and release our wake-lock
 		mWakeLock.release();
 	}
 
@@ -95,8 +88,6 @@ public class FaceSelectActivity extends Activity {
 		public boolean flag;
 
 		private final Bitmap button;
-		//private final Bitmap buttonOn;
-
 		
 		private Bitmap backg;
 		private final Paint p=new Paint();
@@ -295,10 +286,9 @@ public class FaceSelectActivity extends Activity {
 
 	private final class OkOnClickListener implements DialogInterface.OnClickListener {
 		public void onClick(DialogInterface dialog, int which) {
-			
 			dialogOn =false;
 			dialog.dismiss();
-			//SelectView.this.flag=false;
+
 		}
 	}
 	

@@ -1,16 +1,10 @@
 package com.bn.bobblehead;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-
-import com.bn.bobblehead.FaceSelectActivity;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -45,29 +39,6 @@ public class HomeScreen extends Activity {
 				 cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(backFil));
 				 startActivityForResult(cameraIntent, CAMERA_REQUEST);
 				
-				 /*Bitmap photo = BitmapFactory.decodeResource(getResources(),
-						R.drawable.test);
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				photo.compress(Bitmap.CompressFormat.PNG, 100, baos);
-				byte[] b = baos.toByteArray();
-
-				try {
-					if (!backFil.exists()) {
-						backFil.createNewFile();
-					}
-					FileOutputStream out = new FileOutputStream(backFil);
-					photo.compress(Bitmap.CompressFormat.PNG, 90, out);
-
-					out.flush();
-					out.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-
-				Intent intent = new Intent(HomeScreen.this,
-						FaceSelectActivity.class);
-				startActivity(intent);*/
-
 			}
 		});
 
@@ -88,7 +59,6 @@ public class HomeScreen extends Activity {
 
 	// this receives the camera's photo
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		Bitmap backg = null;
 		String filePath = null;
 		switch (requestCode) {
 
@@ -110,24 +80,6 @@ public class HomeScreen extends Activity {
 		case CAMERA_REQUEST:
 			if (resultCode == RESULT_OK) {
 				
-				
-				
-				
-				//backg = (Bitmap) data.getExtras().get("data");
-				/*try {
-					if (!backFil.exists()) {
-						backFil.createNewFile();
-					}
-					FileOutputStream out = new FileOutputStream(backFil);
-					backg.compress(Bitmap.CompressFormat.PNG, 90, out);
-
-					out.flush();
-					out.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				*/
-				
 				filePath=backFil.getPath();
 
 			}
@@ -144,7 +96,7 @@ public class HomeScreen extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// getMenuInflater().inflate(R.menu.activity_home_screen, menu);
+
 		return true;
 	}
 }

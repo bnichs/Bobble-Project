@@ -134,16 +134,9 @@ public class BobActivity extends Activity {
 
     class BobbleView extends View implements SensorEventListener {
         private Sensor mAccelerometer;
-        
 
-        private float mXDpi;
-        private float mYDpi;
-        private float mMetersToPixelsX;
-        private float mMetersToPixelsY;
-        
         private Bitmap backg;
-
-      
+  
         private float mSensorX;
         private float mSensorY;
         private long mSensorTimeStamp;
@@ -180,7 +173,7 @@ public class BobActivity extends Activity {
                 float top=rec.top;
                 float right=rec.right;
                 float bottom=rec.bottom;
-                 t= 0; 
+                t= 0; 
                 
                 
                 width=right-left;
@@ -259,14 +252,7 @@ public class BobActivity extends Activity {
 
             DisplayMetrics metrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(metrics);
-            mXDpi = metrics.xdpi;
-            mYDpi = metrics.ydpi;
-            mMetersToPixelsX = mXDpi / 0.0254f;
-            mMetersToPixelsY = mYDpi / 0.0254f;
-
-           
-           
-            
+                        
             Options opts = new Options();
             opts.inDither = true;
             opts.inPreferredConfig = Bitmap.Config.RGB_565;
@@ -277,20 +263,8 @@ public class BobActivity extends Activity {
             face=new Face(box);
             
         }
-/*
-        @Override
-        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-            // compute the origin of the screen relative to the origin of
-            // the bitmap
-           // mXOrigin = (w - backg.getWidth()) * 0.5f;
-           // mYOrigin =(h - backg.getHeight()) * 0.5f;
-           // mHorizontalBound = ((w / mMetersToPixelsX ) * 0.5f);
-            //mVerticalBound = ((h / mMetersToPixelsY ) * 0.5f);
-            
-        }
-*/
+
        
-        private static final float maxRot=.1f;
         
         public void onSensorChanged(SensorEvent event) {
         	
