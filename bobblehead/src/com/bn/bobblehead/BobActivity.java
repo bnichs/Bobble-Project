@@ -16,6 +16,8 @@
 
 package com.bn.bobblehead;
 
+import com.bn.bobblehead.FaceSelectActivity.SelectView;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -90,9 +92,43 @@ public class BobActivity extends Activity {
                 .getName());
 
         Intent i = getIntent();     
-        
+        backPath=i.getStringExtra("backPath");
         //get background
-        Bitmap bg = BitmapFactory.decodeFile(i.getStringExtra("backPath"));
+      //  Bitmap bg = BitmapFactory.decodeFile();
+        Bitmap bg;
+        Bitmap tmp;
+        
+        
+      //get screen dims
+		DisplayMetrics metrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		
+		
+      //Get background
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inSampleSize = 1; 
+		//tmp=BitmapFactory.decodeFile(backPath,options);
+		
+		//backg=loadResizedBitmap(backPath, metrics.widthPixels, metrics.heightPixels, false);
+
+		try {
+			tmp=BitmapFactory.decodeFile(backPath,options);
+		} catch (OutOfMemoryError oome) {
+		    oome.printStackTrace();
+			System.out.println("WTF");
+		    System.gc();
+		    try {
+		    	tmp=BitmapFactory.decodeFile(backPath,options);
+		    }catch (OutOfMemoryError oome1){
+		    	oome1.printStackTrace();
+		    	options.inSampleSize=4;
+		    	tmp=BitmapFactory.decodeFile(backPath,options);
+		    }
+		}
+		tmp=BitmapFactory.decodeFile(backPath,options);
+		bg=Bitmap.createScaledBitmap(tmp, metrics.widthPixels, metrics.heightPixels, false);
+		tmp.recycle();
+		
         
         //get face rectangle
         RectF rec = (RectF) i.getParcelableExtra("rec");
@@ -100,8 +136,10 @@ public class BobActivity extends Activity {
         
         
         mBobbleView = new BobbleView(this,bg,rec);
+        bg.recycle();
         setContentView(mBobbleView);
     }
+  
 
     @Override
     protected void onResume() {
@@ -143,6 +181,9 @@ public class BobActivity extends Activity {
         private long mCpuTimeStamp;
        
         private Face face;
+        
+        
+      
     	
         class Face{
         	

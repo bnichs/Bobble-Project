@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.Dialog;
@@ -26,6 +27,8 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -78,6 +81,7 @@ public class FaceSelectActivity extends Activity {
 
 	@Override
 	protected void onPause() {
+		
 		super.onPause();
 		mWakeLock.release();
 	}
@@ -88,8 +92,8 @@ public class FaceSelectActivity extends Activity {
 		public boolean flag;
 
 		private final Bitmap button;
-		
-		private Bitmap backg;
+		private final BitmapFactory.Options options = new BitmapFactory.Options();;
+		public Bitmap backg;
 		private final Paint p=new Paint();
 		private Rect buttonR;
 		private RectF selection;
@@ -104,25 +108,56 @@ public class FaceSelectActivity extends Activity {
 		public SelectView(Context context) {
 			super(context);
 			
-			//get screen dims
-			DisplayMetrics metrics = new DisplayMetrics();
-			getWindowManager().getDefaultDisplay().getMetrics(metrics);
-
+			
+			
+			//backg=new Bitmap();
+			Display display = getWindowManager().getDefaultDisplay(); 
+			
+			
+			final int width=display.getWidth();
+			final int height= display.getHeight();
+			
 			//get go button and dimensions
 			Bitmap tmp = BitmapFactory.decodeResource(getResources(), R.drawable.go_button);
 			button=Bitmap.createScaledBitmap(tmp, 200, 200, false);
+			//Get background
+			//BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inSampleSize = 1; 
+			
+			
+			try {
+				tmp=BitmapFactory.decodeFile(backPath,options);
+			} catch (OutOfMemoryError oome) {
+			    oome.printStackTrace();
+				System.gc();
+			    try {
+			    	tmp=BitmapFactory.decodeFile(backPath,options);
+			    }catch (OutOfMemoryError oome1){
+			    	oome1.printStackTrace();
+			    	options.inSampleSize=2;
+			    	tmp=BitmapFactory.decodeFile(backPath,options);
+			    }
+			}
+			backg=Bitmap.createScaledBitmap(tmp, width, height, false);
+			tmp.recycle();
+			
+			
+			
+			
 			/*tmp = BitmapFactory.decodeResource(getResources(), R.drawable.go_button_pushed);
 			buttonOn=Bitmap.createScaledBitmap(tmp, 200, 200, false);
 			*/
-			buttonR=new Rect(metrics.widthPixels-200,metrics.heightPixels-200,metrics.widthPixels,metrics.heightPixels);
+			buttonR=new Rect(width-200,height-200,width,height);
+			ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+			int memoryClass = am.getMemoryClass();
+			Log.v("onCreate", "memoryClass:" + Integer.toString(memoryClass));
 			
 			
-			//Get background
-			BitmapFactory.Options options = new BitmapFactory.Options();
-			options.inSampleSize = 2; 
-			tmp=BitmapFactory.decodeFile(backPath,options);
-			backg=Bitmap.createScaledBitmap(tmp, metrics.widthPixels, metrics.heightPixels, false);
+			//tmp=BitmapFactory.decodeFile(backPath,options);
+			
+			//backg=loadResizedBitmap(backPath, metrics.widthPixels, metrics.heightPixels, false);
 
+			
 			
 			Options opts = new Options();
 			opts.inDither = true;
@@ -134,6 +169,29 @@ public class FaceSelectActivity extends Activity {
 						
 			showDialog(DIALOG_ALERT);
 		}
+		
+		
+		/*public Bitmap loadResizedBitmap( String filename, int width, int height, boolean exact ) {
+		    Bitmap bitmap = null;
+		    BitmapFactory.Options options = new BitmapFactory.Options();
+		    options.inJustDecodeBounds = true;
+		    BitmapFactory.decodeFile( filename, options );
+		    if ( options.outHeight > 0 && options.outWidth > 0 ) {
+		        options.inJustDecodeBounds = false;
+		        options.inSampleSize = 2;
+		        while (    options.outWidth  / options.inSampleSize > width
+		                && options.outHeight / options.inSampleSize > height ) {
+		            options.inSampleSize++;
+		        }
+		        options.inSampleSize=8;
+		        options.outWidth+=200;
+		        bitmap = BitmapFactory.decodeFile( filename, options );
+		        if ( bitmap != null && exact ) {
+		            bitmap = Bitmap.createScaledBitmap( bitmap, width, height, false );
+		        }
+		    }
+		    return bitmap;
+		}*/
 
 
 		//Use to crop a bitmap to the specified rectangle using an oval cut
