@@ -47,9 +47,6 @@ public class FaceSelectActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		
-		
 		// Get an instance of the PowerManager
 		mPowerManager = (PowerManager) getSystemService(POWER_SERVICE);
 
@@ -73,15 +70,12 @@ public class FaceSelectActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
 		mWakeLock.acquire();
-
 		setContentView(mSelectView);
 	}
 
 	@Override
 	protected void onPause() {
-		
 		super.onPause();
 		mWakeLock.release();
 	}
@@ -98,8 +92,8 @@ public class FaceSelectActivity extends Activity {
 		private Rect buttonR;
 		private RectF selection;
 		private boolean rectDrawn=false;
-		private int ooX;//ovals originx
-		private int ooY;//avals origin y
+		private int ooX;//ovals origin x
+		private int ooY;//ovals origin y
 		int top=0;
 		int left=0;
 		int bottom=0;
@@ -110,18 +104,17 @@ public class FaceSelectActivity extends Activity {
 			
 			
 			
-			//backg=new Bitmap();
-			Display display = getWindowManager().getDefaultDisplay(); 
-			
-			
-			final int width=display.getWidth();
-			final int height= display.getHeight();
+			DisplayMetrics metrics = new DisplayMetrics();
+			getWindowManager().getDefaultDisplay().getMetrics(metrics);
+			final int width=metrics.widthPixels;
+			final int height= metrics.heightPixels;
 			
 			//get go button and dimensions
 			Bitmap tmp = BitmapFactory.decodeResource(getResources(), R.drawable.go_button);
 			button=Bitmap.createScaledBitmap(tmp, 200, 200, false);
+			
 			//Get background
-			//BitmapFactory.Options options = new BitmapFactory.Options();
+			BitmapFactory.Options options = new BitmapFactory.Options();;
 			options.inSampleSize = 1; 
 			
 			
@@ -141,28 +134,8 @@ public class FaceSelectActivity extends Activity {
 			backg=Bitmap.createScaledBitmap(tmp, width, height, false);
 			tmp.recycle();
 			
-			
-			
-			
-			/*tmp = BitmapFactory.decodeResource(getResources(), R.drawable.go_button_pushed);
-			buttonOn=Bitmap.createScaledBitmap(tmp, 200, 200, false);
-			*/
 			buttonR=new Rect(width-200,height-200,width,height);
-			ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-			int memoryClass = am.getMemoryClass();
-			Log.v("onCreate", "memoryClass:" + Integer.toString(memoryClass));
-			
-			
-			//tmp=BitmapFactory.decodeFile(backPath,options);
-			
-			//backg=loadResizedBitmap(backPath, metrics.widthPixels, metrics.heightPixels, false);
-
-			
-			
-			Options opts = new Options();
-			opts.inDither = true;
-			opts.inPreferredConfig = Bitmap.Config.RGB_565;
-
+					
 			p.setStyle(Paint.Style.STROKE) ;
 			p.setStrokeWidth(4f);
 			p.setARGB(255, 0, 200, 0);
@@ -171,28 +144,7 @@ public class FaceSelectActivity extends Activity {
 		}
 		
 		
-		/*public Bitmap loadResizedBitmap( String filename, int width, int height, boolean exact ) {
-		    Bitmap bitmap = null;
-		    BitmapFactory.Options options = new BitmapFactory.Options();
-		    options.inJustDecodeBounds = true;
-		    BitmapFactory.decodeFile( filename, options );
-		    if ( options.outHeight > 0 && options.outWidth > 0 ) {
-		        options.inJustDecodeBounds = false;
-		        options.inSampleSize = 2;
-		        while (    options.outWidth  / options.inSampleSize > width
-		                && options.outHeight / options.inSampleSize > height ) {
-		            options.inSampleSize++;
-		        }
-		        options.inSampleSize=8;
-		        options.outWidth+=200;
-		        bitmap = BitmapFactory.decodeFile( filename, options );
-		        if ( bitmap != null && exact ) {
-		            bitmap = Bitmap.createScaledBitmap( bitmap, width, height, false );
-		        }
-		    }
-		    return bitmap;
-		}*/
-
+		
 
 		//Use to crop a bitmap to the specified rectangle using an oval cut
 		public Bitmap getCroppedBitmap(Bitmap bitmap,RectF r) {

@@ -79,9 +79,7 @@ public class HomeScreen extends Activity {
 			break;
 		case CAMERA_REQUEST:
 			if (resultCode == RESULT_OK) {
-				
 				filePath=backFil.getPath();
-
 			}
 			break;
 
@@ -96,7 +94,6 @@ public class HomeScreen extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-
 		return true;
 	}
 }

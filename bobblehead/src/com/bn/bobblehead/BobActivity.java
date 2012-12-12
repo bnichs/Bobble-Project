@@ -16,8 +16,6 @@
 
 package com.bn.bobblehead;
 
-import com.bn.bobblehead.FaceSelectActivity.SelectView;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -27,7 +25,6 @@ import android.graphics.BitmapFactory.Options;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -93,8 +90,8 @@ public class BobActivity extends Activity {
 
         Intent i = getIntent();     
         backPath=i.getStringExtra("backPath");
+        
         //get background
-      //  Bitmap bg = BitmapFactory.decodeFile();
         Bitmap bg;
         Bitmap tmp;
         
@@ -107,10 +104,7 @@ public class BobActivity extends Activity {
       //Get background
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inSampleSize = 1; 
-		//tmp=BitmapFactory.decodeFile(backPath,options);
 		
-		//backg=loadResizedBitmap(backPath, metrics.widthPixels, metrics.heightPixels, false);
-
 		try {
 			tmp=BitmapFactory.decodeFile(backPath,options);
 		} catch (OutOfMemoryError oome) {
@@ -133,8 +127,6 @@ public class BobActivity extends Activity {
         //get face rectangle
         RectF rec = (RectF) i.getParcelableExtra("rec");
         
-        
-        
         mBobbleView = new BobbleView(this,bg,rec);
         bg.recycle();
         setContentView(mBobbleView);
@@ -144,11 +136,7 @@ public class BobActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        /*
-         * when the activity is resumed, we acquire a wake-lock so that the
-         * screen stays on, since the user will likely not be fiddling with the
-         * screen or buttons.
-         */
+
         mWakeLock.acquire();
 
         // Start the simulation
@@ -182,9 +170,6 @@ public class BobActivity extends Activity {
        
         private Face face;
         
-        
-      
-    	
         class Face{
         	
         	private final Bitmap faceOrig;
@@ -207,29 +192,25 @@ public class BobActivity extends Activity {
         	public Face(RectF box){
         		
         		rec=box;
-        		//final float ran = ((float) Math.random() - 0.5f) * 0.2f;
-                //mOneMinusFriction = 1.0f - sFriction + ran;
-        		        	
+        		    	
                 float left=rec.left;
                 float top=rec.top;
                 float right=rec.right;
                 float bottom=rec.bottom;
+               
                 t= 0; 
-                
-                
+                                
                 width=right-left;
                 height=bottom-top;
                 
                 left=left-width/4f;
                 right=right+width/4f;
-                
                 top=top-height/5f;
                 bottom=bottom+height/5f;
                 
                 faceRectCurr=new RectF(left,top,right,bottom);
                 faceRectOrig=new RectF(left,top,right,bottom);
                 
-               
                 faceOrig=BitmapFactory.decodeFile(HomeScreen.faceFil.toString());
                 fisheye(faceOrig); // native interface lines
                 
@@ -257,7 +238,6 @@ public class BobActivity extends Activity {
         		
 	        		faceRectCurr.left=faceRectOrig.left-xOffset;
 	        		faceRectCurr.right=faceRectOrig.right+xOffset;
-	        		
 	        		faceRectCurr.top=faceRectOrig.top-yOffset;
 	        		faceRectCurr.bottom=faceRectOrig.bottom+yOffset;
         		}
@@ -368,11 +348,9 @@ public class BobActivity extends Activity {
             
             final long now = mSensorTimeStamp + (System.nanoTime() - mCpuTimeStamp);
             
-            
             final float sx = mSensorX;
             final float sy = mSensorY;
-
-            
+           
             face.update(sx, sy, now); // update the position
             canvas.drawBitmap(face.faceCurr,null,face.faceRectCurr, null);
             
