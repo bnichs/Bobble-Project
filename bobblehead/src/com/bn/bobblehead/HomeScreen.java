@@ -34,11 +34,12 @@ public class HomeScreen extends Activity {
 
 			// launch camera app to get img
 			public void onClick(View v) {
-				 Intent cameraIntent = new
-				 Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-				 cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(backFil));
-				 startActivityForResult(cameraIntent, CAMERA_REQUEST);
-				
+				Intent cameraIntent = new Intent(
+						android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+				cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+						Uri.fromFile(backFil));
+				startActivityForResult(cameraIntent, CAMERA_REQUEST);
+
 			}
 		});
 
@@ -79,7 +80,7 @@ public class HomeScreen extends Activity {
 			break;
 		case CAMERA_REQUEST:
 			if (resultCode == RESULT_OK) {
-				filePath=backFil.getPath();
+				filePath = backFil.getPath();
 			}
 			break;
 

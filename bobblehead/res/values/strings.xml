@@ -7,5 +7,6 @@
     <string name="title_activity_bobble">BobbleActivity</string>
     <string name="title_activity_bob">BobActivity</string>
     <string name="title_activity_face_select">FaceSelectActivity</string>
-	<string name="bobble_button">Click Here to Make a BobbleHead!!!</string>
+	<string name="bobble_button">Make your own bobblehead</string>
+	<string name="gallery_button">Use existing image</string>
 </resources>

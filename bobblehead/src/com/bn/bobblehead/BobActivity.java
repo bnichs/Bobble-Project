@@ -54,312 +54,289 @@ import android.view.WindowManager;
 
 public class BobActivity extends Activity {
 
-    private BobbleView mBobbleView;
-    private SensorManager mSensorManager;
-    private PowerManager mPowerManager;
-    private WindowManager mWindowManager;
-    private Display mDisplay;
-    private WakeLock mWakeLock;
-    private String backPath;
-    
-    static {
-        System.loadLibrary("imageprocessing");
-      }
+	private BobbleView mBobbleView;
+	private SensorManager mSensorManager;
+	private PowerManager mPowerManager;
+	private WindowManager mWindowManager;
+	private Display mDisplay;
+	private WakeLock mWakeLock;
+	private String backPath;
+
+	static {
+		System.loadLibrary("imageprocessing");
+	}
 
 	public native void fisheye(Bitmap bmp);
-	
-	
-    /** Called when the activity is first created. */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
 
-        // Get an instance of the SensorManager
-        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+	/** Called when the activity is first created. */
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
-        // Get an instance of the PowerManager
-        mPowerManager = (PowerManager) getSystemService(POWER_SERVICE);
+		// Get an instance of the SensorManager
+		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
-        // Get an instance of the WindowManager
-        mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        mDisplay = mWindowManager.getDefaultDisplay();
+		// Get an instance of the PowerManager
+		mPowerManager = (PowerManager) getSystemService(POWER_SERVICE);
 
-        // Create a bright wake lock
-        mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, getClass()
-                .getName());
+		// Get an instance of the WindowManager
+		mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+		mDisplay = mWindowManager.getDefaultDisplay();
 
-        Intent i = getIntent();     
-        backPath=i.getStringExtra("backPath");
-        
-        //get background
-        Bitmap bg;
-        Bitmap tmp;
-        
-        
-      //get screen dims
+		// Create a bright wake lock
+		mWakeLock = mPowerManager.newWakeLock(
+				PowerManager.SCREEN_BRIGHT_WAKE_LOCK, getClass().getName());
+
+		Intent i = getIntent();
+		backPath = i.getStringExtra("backPath");
+
+		// get background
+		Bitmap bg;
+		Bitmap tmp;
+
+		// get screen dims
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
-		
-		
-      //Get background
-		BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inSampleSize = 1; 
-		
-		try {
-			tmp=BitmapFactory.decodeFile(backPath,options);
-		} catch (OutOfMemoryError oome) {
-		    oome.printStackTrace();
-			System.out.println("WTF");
-		    System.gc();
-		    try {
-		    	tmp=BitmapFactory.decodeFile(backPath,options);
-		    }catch (OutOfMemoryError oome1){
-		    	oome1.printStackTrace();
-		    	options.inSampleSize=4;
-		    	tmp=BitmapFactory.decodeFile(backPath,options);
-		    }
+
+		final int width = metrics.widthPixels;
+		final int height = metrics.heightPixels;
+
+		bg = Utils.decodeSampledBitmap(backPath, width, height);
+
+		// get face rectangle
+		RectF rec = (RectF) i.getParcelableExtra("rec");
+
+		mBobbleView = new BobbleView(this, bg, rec);
+		bg.recycle();
+		setContentView(mBobbleView);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		mWakeLock.acquire();
+
+		// Start the simulation
+		mBobbleView.startBobble();
+
+		setContentView(mBobbleView);
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+
+		// Stop the simulation
+		mBobbleView.stopBobble();
+
+		// and release our wake-lock
+		mWakeLock.release();
+	}
+
+	class BobbleView extends View implements SensorEventListener {
+		private Sensor mAccelerometer;
+
+		private Bitmap backg;
+
+		private float mSensorX;
+		private float mSensorY;
+		private long mSensorTimeStamp;
+		private long mCpuTimeStamp;
+
+		private Face face;
+
+		class Face {
+
+			private final Bitmap faceOrig;
+			private final RectF faceRectOrig;
+			private float rot;// rotation
+			private RectF rec;// current rectangle occupied
+			private RectF faceRectCurr;// current face rectangle. Accounts for
+										// rotaion
+
+			private Bitmap faceCurr;
+
+			public float posX, posY;
+
+			private double t;
+			private float width, height;
+
+			private final float maxRot = 20;
+
+			public Face(RectF box) {
+
+				rec = box;
+
+				float left = rec.left;
+				float top = rec.top;
+				float right = rec.right;
+				float bottom = rec.bottom;
+
+				t = 0;
+
+				width = right - left;
+				height = bottom - top;
+
+				left = left - width / 4f;
+				right = right + width / 4f;
+				top = top - height / 5f;
+				bottom = bottom + height / 5f;
+
+				faceRectCurr = new RectF(left, top, right, bottom);
+				faceRectOrig = new RectF(left, top, right, bottom);
+
+				faceOrig = BitmapFactory.decodeFile(HomeScreen.faceFil
+						.toString());
+				fisheye(faceOrig); // native interface lines
+
+			}
+
+			public void update(float sx, float sy, long timestamp) {
+
+				if (rot > maxRot) {
+					rot = maxRot;
+				}
+				if (rot < -maxRot) {
+					rot = -maxRot;
+				}
+
+				int x = faceOrig.getWidth();
+				int y = faceOrig.getHeight();
+				Matrix matrix = new Matrix();
+				matrix.setRotate(rot, x / 2, y);
+				faceCurr = Bitmap.createBitmap(faceOrig, 0, 0, x, y, matrix,
+						true);
+
+				float xOffset = ((faceCurr.getWidth() - x) * .5f);
+				float yOffset = ((faceCurr.getHeight() - y) * .5f);
+
+				if (xOffset < x / 2 || yOffset < y / 2) {
+
+					faceRectCurr.left = faceRectOrig.left - xOffset;
+					faceRectCurr.right = faceRectOrig.right + xOffset;
+					faceRectCurr.top = faceRectOrig.top - yOffset;
+					faceRectCurr.bottom = faceRectOrig.bottom + yOffset;
+				}
+				computePhysics(sx, sy);
+
+			}
+
+			public void computePhysics(float sx, float sy) { // move around
+																// boxRec
+				t = t + 0.5;
+				faceRectCurr.left += (float) 8f * Math.sin(t);
+				faceRectCurr.right += (float) 8f * Math.sin(t);
+				faceRectCurr.top += (float) 16f * Math.sin(t / 5f);
+				faceRectCurr.bottom += (float) 16f * Math.sin(t / 5f);
+			}
+
 		}
-		tmp=BitmapFactory.decodeFile(backPath,options);
-		bg=Bitmap.createScaledBitmap(tmp, metrics.widthPixels, metrics.heightPixels, false);
-		tmp.recycle();
-		
-        
-        //get face rectangle
-        RectF rec = (RectF) i.getParcelableExtra("rec");
-        
-        mBobbleView = new BobbleView(this,bg,rec);
-        bg.recycle();
-        setContentView(mBobbleView);
-    }
-  
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+		public void startBobble() {
 
-        mWakeLock.acquire();
+			mSensorManager.registerListener(this, mAccelerometer,
+					SensorManager.SENSOR_DELAY_NORMAL);
+			mSensorManager.registerListener(this,
+					mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
+					SensorManager.SENSOR_DELAY_GAME);
+		}
 
-        // Start the simulation
-        mBobbleView.startBobble();
-        
-        setContentView(mBobbleView);
-    }
+		public void stopBobble() {
+			mSensorManager.unregisterListener(this);
+		}
 
-    @Override
-    protected void onPause() {
-        super.onPause();
+		public BobbleView(Context context, Bitmap bg, RectF box) {
+			super(context);
+			mAccelerometer = mSensorManager
+					.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-        // Stop the simulation
-        mBobbleView.stopBobble();
+			DisplayMetrics metrics = new DisplayMetrics();
+			getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-        // and release our wake-lock
-        mWakeLock.release();
-    }
-    
-    
+			Options opts = new Options();
+			opts.inDither = true;
+			opts.inPreferredConfig = Bitmap.Config.RGB_565;
 
-    class BobbleView extends View implements SensorEventListener {
-        private Sensor mAccelerometer;
+			backg = Bitmap.createScaledBitmap(bg, metrics.widthPixels,
+					metrics.heightPixels, false);
 
-        private Bitmap backg;
-  
-        private float mSensorX;
-        private float mSensorY;
-        private long mSensorTimeStamp;
-        private long mCpuTimeStamp;
-       
-        private Face face;
-        
-        class Face{
-        	
-        	private final Bitmap faceOrig;
-        	private final RectF faceRectOrig;
-        	private float rot;//rotation
-        	private RectF rec;//current rectangle occupied
-        	private RectF faceRectCurr;//current face rectangle. Accounts for rotaion
+			face = new Face(box);
 
-        	private Bitmap faceCurr;
-        	
-            public float posX,posY;
+		}
 
-        	private double t;
-            private float width, height;
-            
-            private final float maxRot=20;
-            
-            
-            
-        	public Face(RectF box){
-        		
-        		rec=box;
-        		    	
-                float left=rec.left;
-                float top=rec.top;
-                float right=rec.right;
-                float bottom=rec.bottom;
-               
-                t= 0; 
-                                
-                width=right-left;
-                height=bottom-top;
-                
-                left=left-width/4f;
-                right=right+width/4f;
-                top=top-height/5f;
-                bottom=bottom+height/5f;
-                
-                faceRectCurr=new RectF(left,top,right,bottom);
-                faceRectOrig=new RectF(left,top,right,bottom);
-                
-                faceOrig=BitmapFactory.decodeFile(HomeScreen.faceFil.toString());
-                fisheye(faceOrig); // native interface lines
-                
-        	}
+		public void onSensorChanged(SensorEvent event) {
 
-        	
-        	public void update(float sx, float sy, long timestamp){
-        		
-        		if (rot>maxRot){
-        			rot=maxRot;
-        		}if (rot<-maxRot){
-        			rot=-maxRot;
-        		}
-        		
-        		int x=faceOrig.getWidth();
-        		int y=faceOrig.getHeight();
-        		Matrix matrix = new Matrix();
-        		matrix.setRotate(rot,x/2,y);
-        		faceCurr= Bitmap.createBitmap(faceOrig, 0, 0, x, y, matrix, true);
+			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+				switch (mDisplay.getRotation()) {
+				case Surface.ROTATION_0:
+					mSensorX = event.values[0];
+					mSensorY = event.values[1];
+					break;
+				case Surface.ROTATION_90:
+					mSensorX = -event.values[1];
+					mSensorY = event.values[0];
+					break;
+				case Surface.ROTATION_180:
+					mSensorX = -event.values[0];
+					mSensorY = -event.values[1];
+					break;
+				case Surface.ROTATION_270:
+					mSensorX = event.values[1];
+					mSensorY = -event.values[0];
+					break;
+				}
 
-        		float xOffset=((faceCurr.getWidth()-x) * .5f);
-        		float yOffset=((faceCurr.getHeight()-y) * .5f);
-        		
-        		if (xOffset < x/2 || yOffset< y/2 ){
-        		
-	        		faceRectCurr.left=faceRectOrig.left-xOffset;
-	        		faceRectCurr.right=faceRectOrig.right+xOffset;
-	        		faceRectCurr.top=faceRectOrig.top-yOffset;
-	        		faceRectCurr.bottom=faceRectOrig.bottom+yOffset;
-        		}
-        		computePhysics(sx, sy);
-        		
-        	}
-        	
-        	
-        	 public void computePhysics(float sx, float sy) { // move around boxRec
-        		t = t + 0.5;
-    			faceRectCurr.left += (float) 8f*Math.sin(t);
-             	faceRectCurr.right+= (float) 8f*Math.sin(t);
-             	faceRectCurr.top += (float) 16f*Math.sin(t/5f);
-    			faceRectCurr.bottom+= (float) 16f*Math.sin(t/5f);
-        	 }
-        
-        }
-       
+			} else if (event.sensor.getType() == Sensor.TYPE_GRAVITY) {
+				face.rot = -((float) java.lang.Math.atan(event.values[1]
+						/ event.values[0])) * 180f / (3.14f);
 
-        public void startBobble() {
+			} else {
+				return;
+			}
+			mSensorTimeStamp = event.timestamp;
+			mCpuTimeStamp = System.nanoTime();
+		}
 
-            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-            mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY), SensorManager.SENSOR_DELAY_GAME);
-        }
-
-        public void stopBobble() {
-            mSensorManager.unregisterListener(this);
-        }
-
-        public BobbleView(Context context,Bitmap bg,RectF box) {
-            super(context);
-            mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-            DisplayMetrics metrics = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(metrics);
-                        
-            Options opts = new Options();
-            opts.inDither = true;
-            opts.inPreferredConfig = Bitmap.Config.RGB_565;
-           
-            
-            backg=Bitmap.createScaledBitmap(bg, metrics.widthPixels, metrics.heightPixels, false);
-			
-            face=new Face(box);
-            
-        }
-
-       
-        
-        public void onSensorChanged(SensorEvent event) {
-        	
-        	if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
-               switch (mDisplay.getRotation()) {
-	                case Surface.ROTATION_0:
-	                    mSensorX = event.values[0];
-	                    mSensorY = event.values[1];
-	                    break;
-	                case Surface.ROTATION_90:
-	                    mSensorX = -event.values[1];
-	                    mSensorY = event.values[0];
-	                    break;
-	                case Surface.ROTATION_180:
-	                    mSensorX = -event.values[0];
-	                    mSensorY = -event.values[1];
-	                    break;
-	                case Surface.ROTATION_270:
-	                    mSensorX = event.values[1];
-	                    mSensorY = -event.values[0];
-	                    break;
-	            }
-	        
-            }
-            else if (event.sensor.getType() == Sensor.TYPE_GRAVITY){
-            	face.rot=-((float) java.lang.Math.atan(event.values[1]/event.values[0]))*180f/(3.14f);
-            	
-            }	
-            else{
-            	return;
-            }
-            mSensorTimeStamp = event.timestamp;
-            mCpuTimeStamp = System.nanoTime();
-        }
-        
-        public boolean onTouchEvent(MotionEvent e) {
+		public boolean onTouchEvent(MotionEvent e) {
 			// TODO Auto-generated method stub
 
 			float x = (float) e.getX();
 			float y = (float) e.getY();
-			final long now = mSensorTimeStamp + (System.nanoTime() - mCpuTimeStamp);
-			
+			final long now = mSensorTimeStamp
+					+ (System.nanoTime() - mCpuTimeStamp);
+
 			if (face.faceRectCurr.contains(x, y)) {
 				face.update(x, y, now);
 			}
 			return true;
-        }
-       
-        
-        private Paint p=new Paint();
+		}
 
-        @Override
-        protected void onDraw(Canvas canvas) {
+		private Paint p = new Paint();
 
-        	p.setStyle(Paint.Style.STROKE) ;
-		 	p.setStrokeWidth(4f);
-		 	p.setARGB(255, 0, 200, 0);
+		@Override
+		protected void onDraw(Canvas canvas) {
 
-            canvas.drawBitmap(backg, 0, 0, null);
-            
-            final long now = mSensorTimeStamp + (System.nanoTime() - mCpuTimeStamp);
-            
-            final float sx = mSensorX;
-            final float sy = mSensorY;
-           
-            face.update(sx, sy, now); // update the position
-            canvas.drawBitmap(face.faceCurr,null,face.faceRectCurr, null);
-            
-            // and make sure to redraw asap
-            invalidate();
-        }
-    
-       
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        }
-    }
+			p.setStyle(Paint.Style.STROKE);
+			p.setStrokeWidth(4f);
+			p.setARGB(255, 0, 200, 0);
+
+			canvas.drawBitmap(backg, 0, 0, null);
+
+			final long now = mSensorTimeStamp
+					+ (System.nanoTime() - mCpuTimeStamp);
+
+			final float sx = mSensorX;
+			final float sy = mSensorY;
+
+			face.update(sx, sy, now); // update the position
+			canvas.drawBitmap(face.faceCurr, null, face.faceRectCurr, null);
+
+			// and make sure to redraw asap
+			invalidate();
+		}
+
+		public void onAccuracyChanged(Sensor sensor, int accuracy) {
+		}
+	}
 }
